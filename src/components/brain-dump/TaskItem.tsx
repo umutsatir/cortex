@@ -147,7 +147,7 @@ export function TaskItem({ task }: Props) {
 
           {hovered && (
             <div
-              className="flex items-center gap-1.5 mt-1.5"
+              className="inline-flex items-center gap-1.5 mt-1.5"
               onPointerDown={(e) => e.stopPropagation()}
             >
               {/* Label quick-pick */}
