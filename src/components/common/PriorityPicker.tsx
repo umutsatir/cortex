@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Priority } from '../../types';
 
@@ -19,9 +19,10 @@ interface Props {
 export function PriorityPicker({ anchorEl, selected, onSelect, onClose }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
-  const rect = anchorEl.getBoundingClientRect();
-  const left = Math.min(rect.left, window.innerWidth - 160);
-  const top = rect.bottom + 6;
+  const [pos] = useState(() => {
+    const rect = anchorEl.getBoundingClientRect();
+    return { top: rect.bottom + 6, left: Math.min(rect.left, window.innerWidth - 160) };
+  });
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -44,7 +45,7 @@ export function PriorityPicker({ anchorEl, selected, onSelect, onClose }: Props)
     <div
       ref={ref}
       className="fixed bg-white border border-[#E5E7EB] rounded-xl shadow-xl py-1 overflow-hidden"
-      style={{ top, left, width: 152, zIndex: 9999 }}
+      style={{ top: pos.top, left: pos.left, width: 152, zIndex: 9999 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {OPTIONS.map((opt) => (

@@ -15,9 +15,12 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
   const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
   const pickerRef = useRef<HTMLDivElement>(null);
 
-  const rect = anchorEl.getBoundingClientRect();
-  const left = Math.min(rect.left, window.innerWidth - 232);
-  const top = rect.bottom + 6;
+  // Freeze position at mount — recalculating on each render causes the
+  // picker to jump when typing changes the anchor element's layout.
+  const [pos] = useState(() => {
+    const rect = anchorEl.getBoundingClientRect();
+    return { top: rect.bottom + 6, left: Math.min(rect.left, window.innerWidth - 232) };
+  });
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -54,7 +57,7 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
     <div
       ref={pickerRef}
       className="fixed bg-white border border-[#E5E7EB] rounded-xl shadow-xl overflow-hidden"
-      style={{ top, left, width: 220, zIndex: 9999 }}
+      style={{ top: pos.top, left: pos.left, width: 220, zIndex: 9999 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {/* Search / create input */}
