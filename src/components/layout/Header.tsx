@@ -8,9 +8,7 @@ export function Header() {
     <div
       data-tauri-drag-region
       className="relative flex items-center border-b border-[#E5E7EB] bg-white select-none flex-shrink-0"
-      // 36px aligns content center (y=18) close to macOS traffic lights (y≈13-14)
-      // paddingLeft 80px clears the three traffic light buttons
-      style={{ height: 36, paddingLeft: 80, paddingRight: 16 }}
+      style={{ height: 52, paddingLeft: 80, paddingRight: 16 }}
     >
       {/* View switcher — absolutely centered in the full window width */}
       <div
