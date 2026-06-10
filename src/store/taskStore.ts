@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { startOfWeek, addWeeks, subWeeks } from 'date-fns';
+import { startOfWeek, addWeeks, subWeeks, format, addDays, subDays } from 'date-fns';
 import type { Task, TaskUpdate, AppView } from '../types';
 import { dbGetAllTasks, dbCreateTask, dbUpdateTask, dbDeleteTask } from '../lib/db';
 
@@ -9,6 +9,7 @@ interface TaskStore {
   currentWeekStart: Date;
   initialized: boolean;
   selectedTaskId: string | null;
+  timeboxDate: string; // "YYYY-MM-DD" — date shown in the timebox panel
 
   init: () => Promise<void>;
   addTask: (title: string, extras?: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at'>>) => Promise<Task>;
@@ -19,6 +20,7 @@ interface TaskStore {
   navigateWeek: (direction: 'prev' | 'next') => void;
   navigateToToday: () => void;
   selectTask: (id: string | null) => void;
+  navigateTimeboxDate: (direction: 'prev' | 'next' | 'today') => void;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -27,6 +29,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }),
   initialized: false,
   selectedTaskId: null,
+  timeboxDate: format(new Date(), 'yyyy-MM-dd'),
 
   init: async () => {
     if (get().initialized) return;
@@ -90,7 +93,10 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }));
   },
 
-  setView: (view) => set({ currentView: view }),
+  setView: (view) => set((s) => ({
+    currentView: view,
+    timeboxDate: view === 'today' ? format(new Date(), 'yyyy-MM-dd') : s.timeboxDate,
+  })),
 
   navigateWeek: (direction) =>
     set((s) => ({
@@ -104,4 +110,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }) }),
 
   selectTask: (id) => set({ selectedTaskId: id }),
+
+  navigateTimeboxDate: (direction) =>
+    set((s) => {
+      const cur = new Date(s.timeboxDate + 'T00:00:00');
+      const next =
+        direction === 'today' ? new Date()
+        : direction === 'next' ? addDays(cur, 1)
+        : subDays(cur, 1);
+      return { timeboxDate: format(next, 'yyyy-MM-dd') };
+    }),
 }));

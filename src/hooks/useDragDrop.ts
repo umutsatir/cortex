@@ -1,7 +1,9 @@
 import type { DragEndEvent } from '@dnd-kit/core';
-import { format } from 'date-fns';
+import { format } from 'date-fns'; // used by todayStr()
 import { useTaskStore } from '../store/taskStore';
 import type { EisenhowerQuadrant } from '../types';
+
+const todayStr = () => format(new Date(), 'yyyy-MM-dd');
 
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -17,7 +19,7 @@ function minutesToTime(min: number): string {
 
 export function useDragDrop() {
   const updateTask = useTaskStore((s) => s.updateTask);
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const timeboxDate = useTaskStore((s) => s.timeboxDate);
 
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -61,7 +63,7 @@ export function useDragDrop() {
       const newEnd = minutesToTime(startMin + durationMin);
 
       updateTask(taskId, {
-        scheduled_date: today,
+        scheduled_date: timeboxDate,
         timebox_start: newStart,
         timebox_end: newEnd,
       });
@@ -71,7 +73,7 @@ export function useDragDrop() {
     if (overId.startsWith('eisenhower__')) {
       const quadrant = overId.slice(12) as EisenhowerQuadrant;
       updateTask(taskId, {
-        scheduled_date: today,
+        scheduled_date: todayStr(),
         eisenhower_quadrant: quadrant,
       });
       return;
