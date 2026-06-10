@@ -174,7 +174,7 @@ export function Timebox() {
   const dayNum = format(dateObj, 'd');
 
   return (
-    <div className="w-[300px] flex-shrink-0 flex flex-col border-l border-[#E5E7EB] bg-white">
+    <div className="w-[300px] flex-shrink-0 flex flex-col border-l border-[#E5E7EB] bg-white h-full">
       {/* Header — 52px to match other panel headers */}
       <div
         data-tauri-drag-region
