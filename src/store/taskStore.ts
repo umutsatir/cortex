@@ -17,6 +17,7 @@ interface TaskStore {
   toggleComplete: (id: string) => Promise<void>;
   setView: (view: AppView) => void;
   navigateWeek: (direction: 'prev' | 'next') => void;
+  navigateToToday: () => void;
   selectTask: (id: string | null) => void;
 }
 
@@ -98,6 +99,9 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           ? addWeeks(s.currentWeekStart, 1)
           : subWeeks(s.currentWeekStart, 1),
     })),
+
+  navigateToToday: () =>
+    set({ currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }) }),
 
   selectTask: (id) => set({ selectedTaskId: id }),
 }));

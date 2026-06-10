@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { differenceInCalendarDays } from 'date-fns';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
@@ -60,7 +60,7 @@ export function TaskItem({ task }: Props) {
     data: { taskId: task.id },
   });
 
-  const style = {
+  const dragStyle = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.3 : 1,
   };
@@ -71,12 +71,12 @@ export function TaskItem({ task }: Props) {
     <>
       <motion.div
         ref={setNodeRef}
-        style={style}
+        style={{ ...dragStyle, backgroundColor: hovered ? '#F9FAFB' : 'transparent', transition: 'background-color 0.15s' }}
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.97 }}
         transition={{ duration: 0.12 }}
-        className="group flex items-start gap-2 px-3 py-2 hover:bg-[#F9FAFB] rounded-lg mx-1 cursor-grab active:cursor-grabbing"
+        className="group flex items-start gap-2 px-3 py-2 rounded-lg mx-1 cursor-grab active:cursor-grabbing"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         {...attributes}
@@ -114,43 +114,65 @@ export function TaskItem({ task }: Props) {
                 {task.estimated_minutes < 60 ? `${task.estimated_minutes}m` : `${Math.floor(task.estimated_minutes / 60)}:${String(task.estimated_minutes % 60).padStart(2, '0')}`}
               </span>
             )}
-            {hovered && (
-              <button
-                className="flex-shrink-0 p-0.5 rounded text-[#9CA3AF] hover:text-[#EF4444] hover:bg-red-50 transition-colors"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }}
-              >
-                <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
-            )}
+            <AnimatePresence>
+              {hovered && (
+                <motion.button
+                  key="del"
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  transition={{ duration: 0.1 }}
+                  className="flex-shrink-0 p-0.5 rounded text-[#C4C9D4] hover:text-[#EF4444] hover:bg-red-50 transition-colors"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }}
+                >
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Sub-info: label + due + priority (when not hovered) */}
-          {hasSubInfo && !hovered && (
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              {label && (
-                <span className="flex items-center gap-1 text-[11px]" style={{ color: label.color }}>
-                  <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: label.color }} />
-                  {label.name}
-                </span>
-              )}
-              {task.priority && (
-                <svg width="9" height="11" viewBox="0 0 9 11" fill="none">
-                  <path d="M1 10V1l7 4-7 4z" fill={PRIORITY_COLOR[task.priority]} stroke={PRIORITY_COLOR[task.priority]} strokeWidth="1" strokeLinejoin="round" />
-                </svg>
-              )}
-              {task.due_date && <DueBadge dueDate={task.due_date} />}
-            </div>
-          )}
+          {/* Sub-info: label + due + priority — fades out when hovered */}
+          <AnimatePresence initial={false}>
+            {hasSubInfo && !hovered && (
+              <motion.div
+                key="subinfo"
+                initial={{ opacity: 0, y: -2 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -2 }}
+                transition={{ duration: 0.12 }}
+                className="flex items-center gap-2 mt-1 flex-wrap"
+              >
+                {label && (
+                  <span className="flex items-center gap-1 text-[11px]" style={{ color: label.color }}>
+                    <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: label.color }} />
+                    {label.name}
+                  </span>
+                )}
+                {task.priority && (
+                  <svg width="9" height="11" viewBox="0 0 9 11" fill="none">
+                    <path d="M1 10V1l7 4-7 4z" fill={PRIORITY_COLOR[task.priority]} stroke={PRIORITY_COLOR[task.priority]} strokeWidth="1" strokeLinejoin="round" />
+                  </svg>
+                )}
+                {task.due_date && <DueBadge dueDate={task.due_date} />}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Hover action bar */}
-          {hovered && (
-            <div
-              className="flex items-center gap-1.5 mt-1.5"
-              onPointerDown={(e) => e.stopPropagation()}
-            >
+          {/* Hover action bar — slides in */}
+          <AnimatePresence initial={false}>
+            {hovered && (
+              <motion.div
+                key="actions"
+                initial={{ opacity: 0, y: 3 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 3 }}
+                transition={{ duration: 0.12 }}
+                className="flex items-center gap-1.5 mt-1.5"
+                onPointerDown={(e) => e.stopPropagation()}
+              >
               {/* Label quick-pick */}
               <button
                 ref={labelBtnRef}
@@ -185,8 +207,9 @@ export function TaskItem({ task }: Props) {
                   />
                 </svg>
               </button>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
 
