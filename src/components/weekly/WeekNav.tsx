@@ -46,15 +46,17 @@ export function WeekNav({ onTodayClick }: Props) {
         onClick={onTodayClick}
         whileTap={{ scale: 0.95 }}
         animate={{
-          backgroundColor: isCurrentWeek ? '#EEF2FF' : '#F9FAFB',
-          color: isCurrentWeek ? '#6366F1' : '#6B7280',
+          backgroundColor: isCurrentWeek ? '#EEF2FF' : '#F3F4F6',
+          color: isCurrentWeek ? '#6366F1' : '#374151',
+          borderColor: isCurrentWeek ? '#C7D2FE' : '#E5E7EB',
         }}
         whileHover={{
           backgroundColor: '#EEF2FF',
           color: '#6366F1',
+          borderColor: '#C7D2FE',
         }}
         transition={{ duration: 0.15 }}
-        className="ml-1 px-2.5 py-1 text-[12px] font-medium rounded-lg"
+        className="ml-1 px-3 py-1 text-[12px] font-medium rounded-lg border cursor-pointer"
       >
         Today
       </motion.button>

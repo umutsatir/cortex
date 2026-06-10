@@ -78,7 +78,7 @@ export function TaskItem({ task }: Props) {
         transition={{ duration: 0.12 }}
         className="group flex items-start gap-2 px-3 py-2 rounded-lg mx-1 cursor-grab active:cursor-grabbing"
         onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onMouseLeave={() => { if (!showLabelPicker && !showPriorityPicker) setHovered(false); }}
         {...attributes}
         {...listeners}
       >
@@ -104,7 +104,7 @@ export function TaskItem({ task }: Props) {
           <div className="flex items-center justify-between gap-2">
             <span
               className={`text-[13px] leading-snug flex-1 min-w-0 ${task.is_completed ? 'line-through text-[#9CA3AF]' : 'text-[#111827]'}`}
-              onClick={(e) => { e.stopPropagation(); selectTask(task.id); }}
+              onClick={() => selectTask(task.id)}
               style={{ cursor: 'pointer' }}
             >
               {task.title}

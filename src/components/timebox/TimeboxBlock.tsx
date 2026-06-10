@@ -11,16 +11,18 @@ function timeToMinutes(time: string): number {
   return h * 60 + m;
 }
 
+interface ColorScheme { bg: string; border: string; text: string }
+
 interface Props {
   task: Task;
+  color: ColorScheme;
 }
 
-export function TimeboxBlock({ task }: Props) {
+export function TimeboxBlock({ task, color }: Props) {
   const { toggleComplete, updateTask, selectTask } = useTaskStore(
     useShallow((s) => ({ toggleComplete: s.toggleComplete, updateTask: s.updateTask, selectTask: s.selectTask }))
   );
 
-  // Prefix avoids duplicate draggable IDs when the same task appears in another panel
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tb::${task.id}`,
     data: { taskId: task.id },
@@ -32,11 +34,9 @@ export function TimeboxBlock({ task }: Props) {
   const endMin = timeToMinutes(task.timebox_end);
   const height = Math.max(((endMin - startMin) / 60) * HOUR_PX, 24);
 
-  const style = {
-    height: `${height}px`,
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
-  };
+  const completedStyle = task.is_completed
+    ? { bg: '#F3F4F6', border: '#E5E7EB', text: '#9CA3AF' }
+    : color;
 
   function handleResizeMouseDown(e: React.MouseEvent) {
     e.stopPropagation();
@@ -64,19 +64,24 @@ export function TimeboxBlock({ task }: Props) {
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={`relative rounded-lg px-2 py-1 cursor-grab active:cursor-grabbing flex flex-col gap-0.5 overflow-hidden select-none ${
-        task.is_completed
-          ? 'bg-[#F3F4F6] border border-[#E5E7EB]'
-          : 'bg-[#EEF2FF] border border-[#C7D2FE]'
-      }`}
+      style={{
+        height: `${height}px`,
+        transform: CSS.Translate.toString(transform),
+        opacity: isDragging ? 0.4 : 1,
+        background: completedStyle.bg,
+        borderColor: completedStyle.border,
+      }}
+      className="relative rounded-lg border px-2 py-1 cursor-grab active:cursor-grabbing flex flex-col gap-0.5 overflow-hidden select-none"
       {...attributes}
       {...listeners}
     >
       <div className="flex items-start gap-1.5 min-w-0">
         <button
-          className="flex-shrink-0 w-3.5 h-3.5 mt-0.5 rounded-full border border-[#818CF8] transition-colors flex items-center justify-center"
-          style={{ background: task.is_completed ? '#6366F1' : undefined }}
+          className="flex-shrink-0 w-3.5 h-3.5 mt-0.5 rounded-full border transition-colors flex items-center justify-center"
+          style={{
+            borderColor: task.is_completed ? completedStyle.text : completedStyle.border,
+            background: task.is_completed ? completedStyle.text : undefined,
+          }}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); toggleComplete(task.id); }}
         >
@@ -87,7 +92,8 @@ export function TimeboxBlock({ task }: Props) {
           )}
         </button>
         <span
-          className={`flex-1 text-[11px] font-medium leading-snug cursor-pointer hover:underline ${task.is_completed ? 'text-[#9CA3AF] line-through' : 'text-[#3730A3]'}`}
+          className={`flex-1 text-[11px] font-medium leading-snug cursor-pointer hover:underline ${task.is_completed ? 'line-through' : ''}`}
+          style={{ color: completedStyle.text }}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); selectTask(task.id); }}
         >
@@ -97,14 +103,14 @@ export function TimeboxBlock({ task }: Props) {
 
       {height > 40 && (
         <div className="flex items-center gap-1.5 pl-5">
-          <span className="text-[10px] text-[#818CF8]">
+          <span className="text-[10px]" style={{ color: completedStyle.text + 'BB' }}>
             {task.timebox_start} – {task.timebox_end}
           </span>
           {task.estimated_minutes != null && task.estimated_minutes > 0 && (() => {
-            const blockMin = timeToMinutes(task.timebox_end!) - timeToMinutes(task.timebox_start!);
+            const blockMin = endMin - startMin;
             const match = blockMin === task.estimated_minutes;
             return (
-              <span className={`text-[10px] ${match ? 'text-[#818CF8]' : 'text-[#F59E0B]'}`}>
+              <span className="text-[10px]" style={{ color: match ? completedStyle.text + 'BB' : '#F59E0B' }}>
                 · est {task.estimated_minutes < 60 ? `${task.estimated_minutes}m` : `${Math.floor(task.estimated_minutes / 60)}h${task.estimated_minutes % 60 ? (task.estimated_minutes % 60) + 'm' : ''}`}
               </span>
             );
@@ -117,7 +123,7 @@ export function TimeboxBlock({ task }: Props) {
         onMouseDown={handleResizeMouseDown}
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <div className="w-8 h-0.5 bg-[#818CF8] rounded-full opacity-40" />
+        <div className="w-8 h-0.5 rounded-full opacity-30" style={{ background: completedStyle.text }} />
       </div>
     </div>
   );
