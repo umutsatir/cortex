@@ -194,7 +194,7 @@ export function TaskItem({ task }: Props) {
           anchorEl={labelBtnRef.current}
           selectedId={task.label}
           onSelect={(id) => updateTask(task.id, { label: id })}
-          onClose={() => setShowLabelPicker(false)}
+          onClose={() => { setShowLabelPicker(false); setHovered(false); }}
         />
       )}
       {showPriorityPicker && priorityBtnRef.current && (
@@ -202,7 +202,7 @@ export function TaskItem({ task }: Props) {
           anchorEl={priorityBtnRef.current}
           selected={task.priority}
           onSelect={(p) => updateTask(task.id, { priority: p })}
-          onClose={() => setShowPriorityPicker(false)}
+          onClose={() => { setShowPriorityPicker(false); setHovered(false); }}
         />
       )}
     </>
