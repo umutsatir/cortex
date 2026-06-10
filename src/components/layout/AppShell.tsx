@@ -19,8 +19,41 @@ import { Timebox } from '../timebox/Timebox';
 import { TodayFocus } from '../today/TodayFocus';
 import { TaskDetailPanel } from '../brain-dump/TaskDetailPanel';
 import { useTaskStore } from '../../store/taskStore';
+import { useLabelStore } from '../../store/labelStore';
 import { useDragDrop } from '../../hooks/useDragDrop';
+import { getBlockColor, HOUR_PX } from '../timebox/Timebox';
 import type { Task } from '../../types';
+
+function timeToMinutes(t: string) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function TimeboxOverlay({ task }: { task: Task }) {
+  const labels = useLabelStore((s) => s.labels);
+  const labelColor = labels.find((l) => l.id === task.label)?.color ?? null;
+  const color = getBlockColor(task.id, labelColor);
+
+  const startMin = timeToMinutes(task.timebox_start!);
+  const endMin   = timeToMinutes(task.timebox_end!);
+  const height   = Math.max(((endMin - startMin) / 60) * HOUR_PX, 24);
+
+  return (
+    <div
+      className="rounded-lg border px-2 py-1 shadow-lg flex flex-col gap-0.5 overflow-hidden"
+      style={{ width: 220, height, background: color.bg, borderColor: color.border, opacity: 0.9 }}
+    >
+      <span className="text-[11px] font-medium truncate" style={{ color: color.text }}>
+        {task.title}
+      </span>
+      {height > 36 && (
+        <span className="text-[10px]" style={{ color: color.text + 'AA' }}>
+          {task.timebox_start} – {task.timebox_end}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export function AppShell() {
   const { tasks, currentView, init } = useTaskStore(
@@ -28,19 +61,17 @@ export function AppShell() {
   );
 
   const { onDragEnd } = useDragDrop();
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [activeTask, setActiveTask]             = useState<Task | null>(null);
+  const [fromTimebox, setFromTimebox]           = useState(false);
 
-  useEffect(() => {
-    init();
-  }, [init]);
+  useEffect(() => { init(); }, [init]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.metaKey && e.key === 't') {
         e.preventDefault();
-        useTaskStore.getState().setView(
-          useTaskStore.getState().currentView === 'main' ? 'today' : 'main'
-        );
+        const s = useTaskStore.getState();
+        s.setView(s.currentView === 'main' ? 'today' : 'main');
       }
     }
     window.addEventListener('keydown', onKeyDown);
@@ -51,7 +82,6 @@ export function AppShell() {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
-  // Pointer-first: use cursor position, fall back to rect for edge cases
   const collisionDetection: CollisionDetection = (args) => {
     const hits = pointerWithin(args);
     return hits.length > 0 ? hits : rectIntersection(args);
@@ -59,18 +89,30 @@ export function AppShell() {
 
   function onDragStart(event: DragStartEvent) {
     const rawId = event.active.id as string;
-    const taskId = rawId.startsWith('tb::') ? rawId.slice(4) : rawId;
-    const task = tasks.find((t) => t.id === taskId);
-    setActiveTask(task ?? null);
+    const isTimebox = rawId.startsWith('tb::');
+    const taskId = isTimebox ? rawId.slice(4) : rawId;
+    setFromTimebox(isTimebox);
+    setActiveTask(tasks.find((t) => t.id === taskId) ?? null);
   }
 
   function handleDragEnd(event: Parameters<typeof onDragEnd>[0]) {
     setActiveTask(null);
+    setFromTimebox(false);
     onDragEnd(event);
   }
 
+  const showTimeboxOverlay =
+    fromTimebox &&
+    activeTask?.timebox_start != null &&
+    activeTask?.timebox_end != null;
+
   return (
-    <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={onDragStart} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={collisionDetection}
+      onDragStart={onDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <div className="flex flex-col h-screen bg-[#FAFAFA] overflow-hidden">
         <Header />
         <div className="flex flex-1 overflow-hidden">
@@ -106,11 +148,15 @@ export function AppShell() {
 
       <TaskDetailPanel />
 
-      <DragOverlay>
+      <DragOverlay dropAnimation={null}>
         {activeTask && (
-          <div className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 shadow-lg text-[14px] text-[#111827] opacity-90 max-w-[220px] truncate">
-            {activeTask.title}
-          </div>
+          showTimeboxOverlay ? (
+            <TimeboxOverlay task={activeTask} />
+          ) : (
+            <div className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 shadow-lg text-[13px] text-[#111827] opacity-90 max-w-[220px] truncate">
+              {activeTask.title}
+            </div>
+          )
         )}
       </DragOverlay>
     </DndContext>
