@@ -31,7 +31,7 @@ export function Header() {
   return (
     <div
       data-tauri-drag-region
-      className="relative flex items-center border-b border-[#E5E7EB] bg-white select-none flex-shrink-0"
+      className="absolute top-0 left-0 right-0 flex items-center border-b border-[#E5E7EB] bg-white/90 backdrop-blur-sm select-none z-10"
       style={{ height: 52, paddingLeft: 80, paddingRight: 16 }}
     >
       {/* Left panel toggle */}

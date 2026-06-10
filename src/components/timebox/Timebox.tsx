@@ -175,8 +175,12 @@ export function Timebox() {
 
   return (
     <div className="w-[300px] flex-shrink-0 flex flex-col border-l border-[#E5E7EB] bg-white">
-      {/* Header */}
-      <div className="flex items-center px-3 pt-3 pb-2 border-b border-[#E5E7EB] flex-shrink-0">
+      {/* Header — 52px to match other panel headers */}
+      <div
+        data-tauri-drag-region
+        className="flex items-center px-3 border-b border-[#E5E7EB] flex-shrink-0"
+        style={{ height: 52 }}
+      >
         <span className="text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] flex items-center gap-1.5">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />

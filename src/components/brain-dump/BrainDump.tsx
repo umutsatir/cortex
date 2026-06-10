@@ -14,10 +14,13 @@ export function BrainDump() {
 
   return (
     <div className="w-[280px] flex-shrink-0 flex flex-col border-r border-[#E5E7EB] bg-white h-full">
-      <div className="px-4 pt-4 pb-2">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
-          Brain Dump
-        </span>
+      {/* Header — 52px, clears macOS traffic lights */}
+      <div
+        data-tauri-drag-region
+        className="flex items-center border-b border-[#E5E7EB] flex-shrink-0"
+        style={{ height: 52, paddingLeft: 80, paddingRight: 16 }}
+      >
+        <span className="text-[13px] font-semibold text-[#111827]">Brain Dump</span>
       </div>
 
       <TaskInput placeholder="Capture a thought…" />

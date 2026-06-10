@@ -12,7 +12,6 @@ import {
   type CollisionDetection,
 } from '@dnd-kit/core';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Header } from './Header';
 import { BrainDump } from '../brain-dump/BrainDump';
 import { WeeklyTimeline } from '../weekly/WeeklyTimeline';
 import { Timebox } from '../timebox/Timebox';
@@ -77,63 +76,60 @@ export function AppShell() {
       onDragStart={onDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col h-screen bg-[#FAFAFA] overflow-hidden">
-        <Header />
-        <div className="flex flex-1 overflow-hidden">
-          <AnimatePresence mode="wait" initial={false}>
-            {currentView === 'main' ? (
-              <motion.div
-                key="main"
-                className="flex flex-1 overflow-hidden"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-              >
-                <AnimatePresence initial={false}>
-                  {showBrainDump && (
-                    <motion.div
-                      key="braindump"
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: 280, opacity: 1 }}
-                      exit={{ width: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: 'easeInOut' }}
-                      className="overflow-hidden flex-shrink-0"
-                    >
-                      <BrainDump />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <WeeklyTimeline />
-                <AnimatePresence initial={false}>
-                  {showTimebox && (
-                    <motion.div
-                      key="timebox"
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: 300, opacity: 1 }}
-                      exit={{ width: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: 'easeInOut' }}
-                      className="overflow-hidden flex-shrink-0"
-                    >
-                      <Timebox />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="today"
-                className="flex flex-1 overflow-hidden"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-              >
-                <TodayFocus />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+      <div className="absolute inset-0 flex overflow-hidden bg-[#FAFAFA]">
+        <AnimatePresence mode="wait" initial={false}>
+          {currentView === 'main' ? (
+            <motion.div
+              key="main"
+              className="flex flex-1 overflow-hidden"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              <AnimatePresence initial={false}>
+                {showBrainDump && (
+                  <motion.div
+                    key="braindump"
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 280, opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="overflow-hidden flex-shrink-0 h-full"
+                  >
+                    <BrainDump />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <WeeklyTimeline />
+              <AnimatePresence initial={false}>
+                {showTimebox && (
+                  <motion.div
+                    key="timebox"
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 300, opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="overflow-hidden flex-shrink-0 h-full"
+                  >
+                    <Timebox />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="today"
+              className="flex flex-1 overflow-hidden"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              <TodayFocus />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <TaskDetailPanel />

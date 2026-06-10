@@ -18,15 +18,16 @@ export function TodayTaskList() {
 
   return (
     <div className="w-[280px] flex-shrink-0 flex flex-col border-r border-[#E5E7EB] bg-white h-full">
-      <div className="px-4 pt-4 pb-1">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
-          Today's Tasks
-        </span>
-        <div className="mt-1 text-[13px] font-semibold text-[#111827]">
+      <div
+        data-tauri-drag-region
+        className="flex flex-col justify-center border-b border-[#E5E7EB] flex-shrink-0"
+        style={{ height: 52, paddingLeft: 80, paddingRight: 16 }}
+      >
+        <div className="text-[13px] font-semibold text-[#111827]">
           {format(new Date(), 'EEEE, MMM d')}
         </div>
         {tasks.length > 0 && (
-          <div className="mt-0.5 text-[11px] text-[#9CA3AF]">
+          <div className="text-[11px] text-[#9CA3AF]">
             {completedCount} of {tasks.length} done
           </div>
         )}
