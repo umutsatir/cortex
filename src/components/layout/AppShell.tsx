@@ -23,8 +23,14 @@ import { useDragDrop } from '../../hooks/useDragDrop';
 import type { Task } from '../../types';
 
 export function AppShell() {
-  const { tasks, currentView, init } = useTaskStore(
-    useShallow((s) => ({ tasks: s.tasks, currentView: s.currentView, init: s.init }))
+  const { tasks, currentView, init, showBrainDump, showTimebox } = useTaskStore(
+    useShallow((s) => ({
+      tasks: s.tasks,
+      currentView: s.currentView,
+      init: s.init,
+      showBrainDump: s.showBrainDump,
+      showTimebox: s.showTimebox,
+    }))
   );
 
   const { onDragEnd } = useDragDrop();
@@ -84,9 +90,35 @@ export function AppShell() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
               >
-                <BrainDump />
+                <AnimatePresence initial={false}>
+                  {showBrainDump && (
+                    <motion.div
+                      key="braindump"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 280, opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className="overflow-hidden flex-shrink-0"
+                    >
+                      <BrainDump />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <WeeklyTimeline />
-                <Timebox />
+                <AnimatePresence initial={false}>
+                  {showTimebox && (
+                    <motion.div
+                      key="timebox"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 300, opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className="overflow-hidden flex-shrink-0"
+                    >
+                      <Timebox />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             ) : (
               <motion.div

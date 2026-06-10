@@ -9,7 +9,9 @@ interface TaskStore {
   currentWeekStart: Date;
   initialized: boolean;
   selectedTaskId: string | null;
-  timeboxDate: string; // "YYYY-MM-DD" — date shown in the timebox panel
+  timeboxDate: string;
+  showBrainDump: boolean;
+  showTimebox: boolean;
 
   init: () => Promise<void>;
   addTask: (title: string, extras?: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at'>>) => Promise<Task>;
@@ -21,6 +23,8 @@ interface TaskStore {
   navigateToToday: () => void;
   selectTask: (id: string | null) => void;
   navigateTimeboxDate: (direction: 'prev' | 'next' | 'today') => void;
+  toggleBrainDump: () => void;
+  toggleTimebox: () => void;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -30,6 +34,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   initialized: false,
   selectedTaskId: null,
   timeboxDate: format(new Date(), 'yyyy-MM-dd'),
+  showBrainDump: true,
+  showTimebox: true,
 
   init: async () => {
     if (get().initialized) return;
@@ -120,4 +126,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         : subDays(cur, 1);
       return { timeboxDate: format(next, 'yyyy-MM-dd') };
     }),
+
+  toggleBrainDump: () => set((s) => ({ showBrainDump: !s.showBrainDump })),
+  toggleTimebox:   () => set((s) => ({ showTimebox:   !s.showTimebox   })),
 }));
