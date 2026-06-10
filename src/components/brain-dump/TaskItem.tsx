@@ -139,10 +139,10 @@ export function TaskItem({ task }: Props) {
             {hasSubInfo && !hovered && (
               <motion.div
                 key="subinfo"
-                initial={{ opacity: 0, y: -2 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -2 }}
-                transition={{ duration: 0.12 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
                 className="flex items-center gap-2 mt-1 flex-wrap"
               >
                 {label && (
@@ -161,15 +161,15 @@ export function TaskItem({ task }: Props) {
             )}
           </AnimatePresence>
 
-          {/* Hover action bar — slides in */}
+          {/* Hover action bar */}
           <AnimatePresence initial={false}>
             {hovered && (
               <motion.div
                 key="actions"
-                initial={{ opacity: 0, y: 3 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 3 }}
-                transition={{ duration: 0.12 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
                 className="flex items-center gap-1.5 mt-1.5"
                 onPointerDown={(e) => e.stopPropagation()}
               >
