@@ -77,7 +77,7 @@ function layoutTimebox(tasks: Task[]): LayoutTask[] {
 
 function HourRow({ hour }: { hour: number }) {
   const timeStr = `${String(hour).padStart(2, '0')}:00`;
-  const { setNodeRef, isOver } = useDroppable({ id: `timebox__${timeStr}` });
+  const { setNodeRef } = useDroppable({ id: `timebox__${timeStr}` });
   return (
     <div className="flex" style={{ height: `${HOUR_PX}px` }}>
       <div className="flex-shrink-0 flex items-start pt-1" style={{ width: `${LABEL_W}px` }}>
@@ -85,10 +85,7 @@ function HourRow({ hour }: { hour: number }) {
           {`${String(hour).padStart(2, '0')}:00`}
         </span>
       </div>
-      <div
-        ref={setNodeRef}
-        className={`flex-1 border-b border-[#F3F4F6] transition-colors ${isOver ? 'bg-[#EEF2FF]' : ''}`}
-      />
+      <div ref={setNodeRef} className="flex-1 border-b border-[#F3F4F6]" />
     </div>
   );
 }

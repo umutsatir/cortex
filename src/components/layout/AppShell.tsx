@@ -19,41 +19,8 @@ import { Timebox } from '../timebox/Timebox';
 import { TodayFocus } from '../today/TodayFocus';
 import { TaskDetailPanel } from '../brain-dump/TaskDetailPanel';
 import { useTaskStore } from '../../store/taskStore';
-import { useLabelStore } from '../../store/labelStore';
 import { useDragDrop } from '../../hooks/useDragDrop';
-import { getBlockColor, HOUR_PX } from '../timebox/Timebox';
 import type { Task } from '../../types';
-
-function timeToMinutes(t: string) {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function TimeboxOverlay({ task }: { task: Task }) {
-  const labels = useLabelStore((s) => s.labels);
-  const labelColor = labels.find((l) => l.id === task.label)?.color ?? null;
-  const color = getBlockColor(task.id, labelColor);
-
-  const startMin = timeToMinutes(task.timebox_start!);
-  const endMin   = timeToMinutes(task.timebox_end!);
-  const height   = Math.max(((endMin - startMin) / 60) * HOUR_PX, 24);
-
-  return (
-    <div
-      className="rounded-lg border px-2 py-1 shadow-lg flex flex-col gap-0.5 overflow-hidden"
-      style={{ width: 220, height, background: color.bg, borderColor: color.border, opacity: 0.9 }}
-    >
-      <span className="text-[11px] font-medium truncate" style={{ color: color.text }}>
-        {task.title}
-      </span>
-      {height > 36 && (
-        <span className="text-[10px]" style={{ color: color.text + 'AA' }}>
-          {task.timebox_start} – {task.timebox_end}
-        </span>
-      )}
-    </div>
-  );
-}
 
 export function AppShell() {
   const { tasks, currentView, init } = useTaskStore(
@@ -61,8 +28,7 @@ export function AppShell() {
   );
 
   const { onDragEnd } = useDragDrop();
-  const [activeTask, setActiveTask]             = useState<Task | null>(null);
-  const [fromTimebox, setFromTimebox]           = useState(false);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   useEffect(() => { init(); }, [init]);
 
@@ -89,22 +55,14 @@ export function AppShell() {
 
   function onDragStart(event: DragStartEvent) {
     const rawId = event.active.id as string;
-    const isTimebox = rawId.startsWith('tb::');
-    const taskId = isTimebox ? rawId.slice(4) : rawId;
-    setFromTimebox(isTimebox);
+    const taskId = rawId.startsWith('tb::') ? rawId.slice(4) : rawId;
     setActiveTask(tasks.find((t) => t.id === taskId) ?? null);
   }
 
   function handleDragEnd(event: Parameters<typeof onDragEnd>[0]) {
     setActiveTask(null);
-    setFromTimebox(false);
     onDragEnd(event);
   }
-
-  const showTimeboxOverlay =
-    fromTimebox &&
-    activeTask?.timebox_start != null &&
-    activeTask?.timebox_end != null;
 
   return (
     <DndContext
@@ -148,15 +106,11 @@ export function AppShell() {
 
       <TaskDetailPanel />
 
-      <DragOverlay dropAnimation={null}>
+      <DragOverlay>
         {activeTask && (
-          showTimeboxOverlay ? (
-            <TimeboxOverlay task={activeTask} />
-          ) : (
-            <div className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 shadow-lg text-[13px] text-[#111827] opacity-90 max-w-[220px] truncate">
-              {activeTask.title}
-            </div>
-          )
+          <div className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 shadow-lg text-[13px] text-[#111827] opacity-90 max-w-[220px] truncate">
+            {activeTask.title}
+          </div>
         )}
       </DragOverlay>
     </DndContext>
