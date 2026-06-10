@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { format, isToday, parseISO } from 'date-fns';
-import { useDroppable } from '@dnd-kit/core';
+import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
@@ -73,6 +73,47 @@ function layoutTimebox(tasks: Task[]): LayoutTask[] {
     }
     return { task, col: cols[i], totalCols: maxCol + 1 };
   });
+}
+
+// Shows a full-duration preview highlight while dragging over a timebox slot
+function DropPreview() {
+  const { active, over } = useDndContext();
+  const allTasks = useTaskStore((s) => s.tasks);
+
+  if (!active || !over) return null;
+  const overId = String(over.id);
+  if (!overId.startsWith('timebox__')) return null;
+
+  const slotTime = overId.slice(9);
+  const rawId = String(active.id);
+  const taskId = rawId.startsWith('tb::') ? rawId.slice(4) : rawId;
+  const task = allTasks.find((t) => t.id === taskId);
+
+  let durationMin = 60;
+  if (task?.timebox_start && task?.timebox_end) {
+    durationMin = timeToMinutes(task.timebox_end) - timeToMinutes(task.timebox_start);
+  } else if (task?.estimated_minutes) {
+    durationMin = task.estimated_minutes;
+  }
+  durationMin = Math.max(15, durationMin);
+
+  const top = timeToOffset(slotTime);
+  const height = (durationMin / 60) * HOUR_PX;
+
+  return (
+    <div
+      className="absolute pointer-events-none z-20 rounded-lg"
+      style={{
+        top,
+        left: LABEL_W + 4,
+        right: 4,
+        height,
+        background: '#EEF2FF',
+        border: '1.5px dashed #818CF8',
+        opacity: 0.65,
+      }}
+    />
+  );
 }
 
 function HourRow({ hour }: { hour: number }) {
@@ -194,6 +235,8 @@ export function Timebox() {
       {/* Scrollable timeline */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="relative" style={{ height: `${totalH}px` }}>
+          <DropPreview />
+
           {hours.map((hour) => (
             <div key={hour} className="absolute w-full" style={{ top: `${(hour - START_HOUR) * HOUR_PX}px`, height: `${HOUR_PX}px` }}>
               <HourRow hour={hour} />
