@@ -12,19 +12,6 @@ export function Header() {
       // paddingLeft 80px clears the three traffic light buttons
       style={{ height: 36, paddingLeft: 80, paddingRight: 16 }}
     >
-      {/* Logo — left-anchored after traffic lights */}
-      <div className="flex items-center gap-1.5 pointer-events-none">
-        <div className="w-[18px] h-[18px] rounded-md bg-[#6366F1] flex items-center justify-center flex-shrink-0">
-          <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
-            <rect x="1" y="1" width="3" height="3" rx="0.5" fill="white" />
-            <rect x="6" y="1" width="3" height="3" rx="0.5" fill="white" />
-            <rect x="1" y="6" width="3" height="3" rx="0.5" fill="white" />
-            <rect x="6" y="6" width="3" height="3" rx="0.5" fill="white" />
-          </svg>
-        </div>
-        <span className="text-[13px] font-semibold text-[#111827] leading-none">Cortex</span>
-      </div>
-
       {/* View switcher — absolutely centered in the full window width */}
       <div
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 bg-[#F3F4F6] rounded-lg p-[3px]"
