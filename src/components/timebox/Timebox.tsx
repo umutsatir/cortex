@@ -4,9 +4,18 @@ import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useLabelStore } from '../../store/labelStore';
+import { useGeneralStore } from '../../store/generalStore';
 import { useIsDark } from '../../hooks/useIsDark';
+import { useT } from '../../hooks/useT';
 import { TimeboxBlock } from './TimeboxBlock';
 import type { Task } from '../../types';
+
+function formatHour(hour: number, fmt: '12h' | '24h'): string {
+  if (fmt === '24h') return `${String(hour).padStart(2, '0')}:00`;
+  if (hour === 0) return '12 AM';
+  if (hour === 12) return '12 PM';
+  return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
+}
 
 export const START_HOUR = 6;
 const END_HOUR = 24;
@@ -127,14 +136,14 @@ function DropPreview() {
   );
 }
 
-function HourRow({ hour }: { hour: number }) {
+function HourRow({ hour, timeFormat }: { hour: number; timeFormat: '12h' | '24h' }) {
   const timeStr = `${String(hour).padStart(2, '0')}:00`;
   const { setNodeRef } = useDroppable({ id: `timebox__${timeStr}` });
   return (
     <div className="flex" style={{ height: `${HOUR_PX}px` }}>
       <div className="flex-shrink-0 flex items-start pt-1" style={{ width: `${LABEL_W}px` }}>
         <span className="text-[11px] pl-3" style={{ color: 'var(--text-4)' }}>
-          {`${String(hour).padStart(2, '0')}:00`}
+          {formatHour(hour, timeFormat)}
         </span>
       </div>
       <div ref={setNodeRef} className="flex-1 border-b" style={{ borderColor: 'var(--border-subtle)' }} />
@@ -152,6 +161,8 @@ export function Timebox() {
   const labels = useLabelStore((s) => s.labels);
 
   const isDark = useIsDark();
+  const t = useT();
+  const timeFormat = useGeneralStore((s) => s.timeFormat);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [nowOffset, setNowOffset] = useState<number | null>(null);
 
@@ -201,7 +212,7 @@ export function Timebox() {
             <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
             <path d="M6 3.5v2.5l1.5 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
           </svg>
-          Timebox
+          {t('Timebox')}
         </span>
 
         <div className="flex items-center gap-1 ml-auto">
@@ -226,7 +237,7 @@ export function Timebox() {
               borderColor: isCurToday ? 'var(--accent-border)' : 'var(--border)',
             }}
           >
-            Today
+            {t('Today')}
           </button>
 
           <button
@@ -264,7 +275,7 @@ export function Timebox() {
 
           {hours.map((hour) => (
             <div key={hour} className="absolute w-full" style={{ top: `${(hour - START_HOUR) * HOUR_PX}px`, height: `${HOUR_PX}px` }}>
-              <HourRow hour={hour} />
+              <HourRow hour={hour} timeFormat={timeFormat} />
             </div>
           ))}
 

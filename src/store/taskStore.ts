@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { startOfWeek, addWeeks, subWeeks, format, addDays, subDays } from 'date-fns';
 import type { Task, TaskUpdate, AppView } from '../types';
 import { dbGetAllTasks, dbCreateTask, dbUpdateTask, dbDeleteTask } from '../lib/db';
+import { useGeneralStore } from './generalStore';
+
+const ws = () => useGeneralStore.getState().weekStartsOn;
 
 interface TaskStore {
   tasks: Task[];
@@ -29,8 +32,8 @@ interface TaskStore {
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
-  currentView: 'main',
-  currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }),
+  currentView: useGeneralStore.getState().defaultView,
+  currentWeekStart: startOfWeek(new Date(), { weekStartsOn: useGeneralStore.getState().weekStartsOn }),
   initialized: false,
   selectedTaskId: null,
   timeboxDate: format(new Date(), 'yyyy-MM-dd'),
@@ -113,7 +116,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     })),
 
   navigateToToday: () =>
-    set({ currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }) }),
+    set({ currentWeekStart: startOfWeek(new Date(), { weekStartsOn: ws() }) }),
 
   selectTask: (id) => set({ selectedTaskId: id }),
 

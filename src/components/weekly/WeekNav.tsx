@@ -1,5 +1,6 @@
 import { format, addDays, isSameWeek } from 'date-fns';
 import { useTaskStore } from '../../store/taskStore';
+import { useT } from '../../hooks/useT';
 import { SettingsButton } from '../layout/SettingsButton';
 
 interface Props {
@@ -27,6 +28,7 @@ export function WeekNav({ onTodayClick }: Props) {
   const toggleBrainDump   = useTaskStore((s) => s.toggleBrainDump);
   const toggleTimebox     = useTaskStore((s) => s.toggleTimebox);
 
+  const t = useT();
   const weekEnd        = addDays(currentWeekStart, 6);
   const isCurrentWeek  = isSameWeek(new Date(), currentWeekStart, { weekStartsOn: 1 });
   const label          = `${format(currentWeekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
@@ -93,7 +95,7 @@ export function WeekNav({ onTodayClick }: Props) {
           borderColor: isCurrentWeek ? 'var(--accent-border)' : 'var(--border)',
         }}
       >
-        Today
+        {t('Today')}
       </button>
 
       {/* View switcher */}
@@ -107,7 +109,7 @@ export function WeekNav({ onTodayClick }: Props) {
             boxShadow: currentView === 'main' ? '0 1px 3px rgba(0,0,0,.08)' : 'none',
           }}
         >
-          Week
+          {t('Week')}
         </button>
         <button
           onClick={() => setView('today')}
@@ -118,7 +120,7 @@ export function WeekNav({ onTodayClick }: Props) {
             boxShadow: currentView === 'today' ? '0 1px 3px rgba(0,0,0,.08)' : 'none',
           }}
         >
-          Today
+          {t('Today')}
         </button>
       </div>
 

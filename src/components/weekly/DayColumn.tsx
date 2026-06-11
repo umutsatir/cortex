@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { format, isToday } from 'date-fns';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
+import { useT } from '../../hooks/useT';
 import { TaskItem } from '../brain-dump/TaskItem';
 
 function InlineAdd({ dateStr }: { dateStr: string }) {
@@ -11,6 +12,7 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
   const [value, setValue] = useState('');
   const addTask = useTaskStore((s) => s.addTask);
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = useT();
 
   if (!active) {
     return (
@@ -25,7 +27,7 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
           <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" />
           <path d="M7 4v6M4 7h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
         </svg>
-        Add a task
+        {t('Add a task')}
       </button>
     );
   }
@@ -69,9 +71,10 @@ interface Props {
 export function DayColumn({ date, onFocusClick }: Props) {
   const dateStr = format(date, 'yyyy-MM-dd');
   const isCurrentDay = isToday(date);
+  const t = useT();
 
   const tasks = useTaskStore(useShallow((s) =>
-    s.tasks.filter((t) => t.scheduled_date === dateStr)
+    s.tasks.filter((task) => task.scheduled_date === dateStr)
   ));
 
   const { setNodeRef, isOver } = useDroppable({ id: `day__${dateStr}` });
@@ -96,7 +99,7 @@ export function DayColumn({ date, onFocusClick }: Props) {
             </span>
             {isCurrentDay && (
               <span className="ml-1 px-2 py-0.5 text-[11px] font-semibold rounded-full leading-none" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
-                Today
+                {t('Today')}
               </span>
             )}
           </div>
@@ -109,14 +112,14 @@ export function DayColumn({ date, onFocusClick }: Props) {
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
               onClick={onFocusClick}
             >
-              Focus
+              {t('Focus')}
             </button>
           )}
         </div>
 
         {tasks.length > 0 && (
           <div className="mt-1.5 text-[11px]" style={{ color: 'var(--text-4)' }}>
-            {tasks.filter((t) => t.is_completed).length}/{tasks.length} done
+            {tasks.filter((task) => task.is_completed).length}/{tasks.length} {t('done')}
           </div>
         )}
       </div>
