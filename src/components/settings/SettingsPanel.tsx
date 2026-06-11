@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { startOfWeek } from 'date-fns';
 import { useThemeStore, applyTheme, ACCENT_PRESETS, type Theme } from '../../store/themeStore';
 import { useGeneralStore, type Lang, type TimeFormat, type WeekStart } from '../../store/generalStore';
+import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
 import type { AppView } from '../../types';
 
@@ -125,6 +127,14 @@ export function SettingsPanel({ onClose }: Props) {
 
   function handleTheme(v: Theme) { setTheme(v); applyTheme(v, accent); }
   function handleAccent(id: string) { setAccent(id); applyTheme(theme, id); }
+  function handleWeekStart(v: WeekStart) {
+    setWeekStartsOn(v);
+    useTaskStore.setState({ currentWeekStart: startOfWeek(new Date(), { weekStartsOn: v }) });
+  }
+  function handleDefaultView(v: AppView) {
+    setDefaultView(v);
+    useTaskStore.setState({ currentView: v });
+  }
 
   return createPortal(
     <AnimatePresence>
@@ -285,7 +295,7 @@ export function SettingsPanel({ onClose }: Props) {
                   <SettingRow label={t('Start of week')}>
                     <SegmentedControl<number>
                       value={weekStartsOn}
-                      onChange={(v) => setWeekStartsOn(v as WeekStart)}
+                      onChange={(v) => handleWeekStart(v as WeekStart)}
                       options={[{ value: 1, label: t('Monday') }, { value: 0, label: t('Sunday') }]}
                     />
                   </SettingRow>
@@ -293,7 +303,7 @@ export function SettingsPanel({ onClose }: Props) {
                   <SettingRow label={t('Default view')}>
                     <SegmentedControl<AppView>
                       value={defaultView}
-                      onChange={setDefaultView}
+                      onChange={handleDefaultView}
                       options={[{ value: 'main', label: t('Week') }, { value: 'today', label: t('Today') }]}
                     />
                   </SettingRow>
