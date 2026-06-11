@@ -41,12 +41,12 @@ interface RowProps {
 
 function DetailRow({ icon, label, children }: RowProps) {
   return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-[#F9FAFB] last:border-b-0">
-      <div className="flex items-center gap-2 w-32 flex-shrink-0 text-[#9CA3AF]">
+    <div className="flex items-center gap-3 py-2.5 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+      <div className="flex items-center gap-2 w-32 flex-shrink-0" style={{ color: 'var(--text-4)' }}>
         {icon}
         <span className="text-[12px]">{label}</span>
       </div>
-      <div className="flex-1 text-[13px] text-[#374151]">{children}</div>
+      <div className="flex-1 text-[13px]" style={{ color: 'var(--text-2)' }}>{children}</div>
     </div>
   );
 }
@@ -132,19 +132,20 @@ export function TaskDetailPanel() {
         />
         <motion.div
           key="panel"
-          className="fixed right-0 top-0 h-full z-50 w-[360px] bg-white border-l border-[#E5E7EB] flex flex-col shadow-xl"
+          className="fixed right-0 top-0 h-full z-50 w-[360px] flex flex-col shadow-xl"
+          style={{ background: 'var(--surface)', borderLeft: '1px solid var(--border)' }}
           initial={{ x: 360 }}
           animate={{ x: 0 }}
           exit={{ x: 360 }}
           transition={{ type: 'spring', stiffness: 400, damping: 40 }}
         >
           {/* Header */}
-          <div className="flex items-start gap-3 px-5 pt-5 pb-4 border-b border-[#F3F4F6] flex-shrink-0">
+          <div className="flex items-start gap-3 px-5 pt-5 pb-4 border-b flex-shrink-0" style={{ borderColor: 'var(--border-subtle)' }}>
             <button
               className="flex-shrink-0 mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors"
               style={{
-                borderColor: task.is_completed ? '#6366F1' : '#D1D5DB',
-                background: task.is_completed ? '#6366F1' : undefined,
+                borderColor: task.is_completed ? 'var(--accent)' : 'var(--text-5)',
+                background: task.is_completed ? 'var(--accent)' : undefined,
               }}
               onClick={() => useTaskStore.getState().toggleComplete(task.id)}
             >
@@ -156,14 +157,18 @@ export function TaskDetailPanel() {
             </button>
             <input
               ref={titleRef}
-              className={`flex-1 text-[15px] font-semibold text-[#111827] bg-transparent outline-none leading-snug ${task.is_completed ? 'line-through text-[#9CA3AF]' : ''}`}
+              className={`flex-1 text-[15px] font-semibold bg-transparent outline-none leading-snug ${task.is_completed ? 'line-through' : ''}`}
+              style={{ color: task.is_completed ? 'var(--text-4)' : 'var(--text-1)' }}
               value={titleVal}
               onChange={(e) => setTitleVal(e.target.value)}
               onBlur={saveTitle}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveTitle(); titleRef.current?.blur(); } }}
             />
             <button
-              className="flex-shrink-0 p-1 text-[#9CA3AF] hover:text-[#EF4444] rounded transition-colors"
+              className="flex-shrink-0 p-1 rounded transition-colors"
+              style={{ color: 'var(--text-4)' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#EF4444'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
               onClick={() => deleteTask(task.id)}
               title="Delete"
             >
@@ -185,13 +190,13 @@ export function TaskDetailPanel() {
                   type="date"
                   value={task.due_date ?? ''}
                   onChange={(e) => updateTask(task.id, { due_date: e.target.value || null })}
-                  className="text-[13px] text-[#374151] bg-transparent outline-none cursor-pointer hover:text-[#6366F1] transition-colors"
-                  style={{ colorScheme: 'light' }}
+                  className="text-[13px] bg-transparent outline-none cursor-pointer transition-colors"
+                  style={{ color: 'var(--text-2)', colorScheme: 'auto' }}
                 />
                 {dueDiff !== null && (
                   <span
                     className="text-[11px]"
-                    style={{ color: dueDiff < 0 ? '#EF4444' : dueDiff <= 2 ? '#F59E0B' : '#9CA3AF' }}
+                    style={{ color: dueDiff < 0 ? '#EF4444' : dueDiff <= 2 ? '#F59E0B' : 'var(--text-4)' }}
                   >
                     {dueDiff < 0 ? `${Math.abs(dueDiff)}d overdue` : dueDiff === 0 ? 'Today' : `in ${dueDiff}d`}
                   </span>
@@ -204,7 +209,7 @@ export function TaskDetailPanel() {
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.2" /><path d="M4.5 4.5h5M4.5 7h5M4.5 9.5h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>}
               label="List"
             >
-              <span className="text-[#6366F1] font-medium">{listLabel}</span>
+              <span className="font-medium" style={{ color: 'var(--accent)' }}>{listLabel}</span>
             </DetailRow>
 
             {/* Estimated time */}
@@ -213,11 +218,15 @@ export function TaskDetailPanel() {
               label="Estimated"
             >
               <input
-                className="text-[13px] text-[#374151] bg-transparent outline-none border-b border-transparent hover:border-[#E5E7EB] focus:border-[#6366F1] transition-colors w-28"
+                className="text-[13px] bg-transparent outline-none border-b border-transparent w-28 transition-colors"
+                style={{ color: 'var(--text-2)' }}
                 placeholder="e.g. 1h 30m"
                 value={estimatedVal}
                 onChange={(e) => setEstimatedVal(e.target.value)}
                 onBlur={saveEstimated}
+                onFocus={(e) => { (e.target as HTMLInputElement).style.borderBottomColor = 'var(--accent)'; }}
+                onMouseEnter={(e) => { if (document.activeElement !== e.target) (e.target as HTMLInputElement).style.borderBottomColor = 'var(--border)'; }}
+                onMouseLeave={(e) => { if (document.activeElement !== e.target) (e.target as HTMLInputElement).style.borderBottomColor = 'transparent'; }}
                 onKeyDown={(e) => { if (e.key === 'Enter') { saveEstimated(); (e.target as HTMLInputElement).blur(); } }}
               />
             </DetailRow>
@@ -237,9 +246,9 @@ export function TaskDetailPanel() {
                       onClick={() => updateTask(task.id, { priority: active ? null : p })}
                       className="px-2 py-0.5 rounded-full text-[11px] font-medium transition-all"
                       style={{
-                        background: active ? cfg.bg : '#F9FAFB',
-                        color: active ? cfg.color : '#9CA3AF',
-                        border: `1px solid ${active ? cfg.color + '50' : '#E5E7EB'}`,
+                        background: active ? cfg.bg : 'var(--surface-2)',
+                        color: active ? cfg.color : 'var(--text-4)',
+                        border: `1px solid ${active ? cfg.color + '50' : 'var(--border)'}`,
                       }}
                     >
                       {cfg.label}
@@ -256,7 +265,9 @@ export function TaskDetailPanel() {
             >
               <button
                 ref={labelBtnRef}
-                className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-[#F9FAFB] transition-colors -ml-2"
+                className="flex items-center gap-2 rounded-lg px-2 py-1 transition-colors -ml-2"
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 onClick={() => setShowLabelPicker(true)}
               >
                 {currentLabel ? (
@@ -265,32 +276,43 @@ export function TaskDetailPanel() {
                     <span className="text-[13px] font-medium" style={{ color: currentLabel.color }}>{currentLabel.name}</span>
                   </>
                 ) : (
-                  <span className="text-[13px] text-[#9CA3AF]">Click to add</span>
+                  <span className="text-[13px]" style={{ color: 'var(--text-4)' }}>Click to add</span>
                 )}
               </button>
             </DetailRow>
 
             {/* Notes */}
             <div className="mt-4 pb-4">
-              <div className="text-[12px] font-medium text-[#374151] mb-2">Notes</div>
+              <div className="text-[12px] font-medium mb-2" style={{ color: 'var(--text-2)' }}>Notes</div>
               <textarea
-                className="w-full text-[13px] text-[#374151] bg-[#F9FAFB] rounded-xl px-3 py-2.5 outline-none focus:bg-white focus:ring-1 focus:ring-[#6366F1] transition-all resize-none"
+                className="w-full text-[13px] rounded-xl px-3 py-2.5 outline-none transition-all resize-none"
+                style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}
                 rows={4}
                 placeholder="Add any notes to this task…"
                 value={notesVal}
                 onChange={(e) => setNotesVal(e.target.value)}
                 onBlur={saveNotes}
+                onFocus={(e) => {
+                  (e.target as HTMLTextAreaElement).style.background = 'var(--surface)';
+                  (e.target as HTMLTextAreaElement).style.outline = `1px solid var(--accent)`;
+                }}
+                onMouseLeave={(e) => {
+                  if (document.activeElement !== e.target) {
+                    (e.target as HTMLTextAreaElement).style.background = 'var(--surface-2)';
+                    (e.target as HTMLTextAreaElement).style.outline = 'none';
+                  }
+                }}
               />
             </div>
 
             {/* Timebox chip */}
             {task.timebox_start && task.timebox_end && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-[#EEF2FF] rounded-lg mb-4">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-[#6366F1]">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg mb-4" style={{ background: 'var(--accent-bg)' }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--accent)' }}>
                   <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
                   <path d="M6 3.5v2.5l1.5 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
-                <span className="text-[12px] text-[#4338CA]">
+                <span className="text-[12px]" style={{ color: 'var(--accent-text)' }}>
                   Timeboxed {task.timebox_start} – {task.timebox_end}
                 </span>
               </div>
@@ -298,9 +320,12 @@ export function TaskDetailPanel() {
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-3 border-t border-[#F3F4F6] flex-shrink-0">
+          <div className="px-5 py-3 border-t flex-shrink-0" style={{ borderColor: 'var(--border-subtle)' }}>
             <button
-              className="text-[11px] text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+              className="text-[11px] transition-colors"
+              style={{ color: 'var(--text-4)' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-3)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
               onClick={() => selectTask(null)}
             >
               Close · Esc
@@ -309,7 +334,6 @@ export function TaskDetailPanel() {
         </motion.div>
       </>
 
-      {/* Pickers rendered outside the panel to avoid z-index issues */}
       {showLabelPicker && labelBtnRef.current && (
         <LabelPicker
           anchorEl={labelBtnRef.current}

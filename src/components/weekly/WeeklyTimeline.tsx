@@ -16,23 +16,21 @@ export function WeeklyTimeline() {
 
   function handleScrollToToday() {
     navigateToToday();
-    // Double rAF: wait for React to repaint after store update
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (!scrollRef.current) return;
         const idx = differenceInCalendarDays(new Date(), currentWeekStart);
-        // After navigateToToday the week always contains today (idx 0-6)
         const todayIdx = isThisWeek(new Date(), { weekStartsOn: 1 })
           ? differenceInCalendarDays(new Date(), currentWeekStart)
           : 0;
         scrollRef.current.scrollTo({ left: Math.max(0, todayIdx) * COL_W, behavior: 'smooth' });
-        void idx; // suppress unused warning
+        void idx;
       });
     });
   }
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 bg-white">
+    <div className="flex flex-col flex-1 min-w-0" style={{ background: 'var(--surface)' }}>
       <WeekNav onTodayClick={handleScrollToToday} />
       <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden">
         <div className="flex h-full" style={{ minWidth: 'max-content' }}>

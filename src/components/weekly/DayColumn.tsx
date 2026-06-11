@@ -15,7 +15,10 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
   if (!active) {
     return (
       <button
-        className="flex items-center gap-2 w-full px-3 py-2.5 text-[13px] text-[#C4C9D4] hover:text-[#9CA3AF] transition-colors text-left"
+        className="flex items-center gap-2 w-full px-3 py-2.5 text-[13px] transition-colors text-left"
+        style={{ color: 'var(--text-5)' }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-5)'; }}
         onClick={() => setActive(true)}
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
@@ -32,7 +35,8 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
       <input
         ref={inputRef}
         autoFocus
-        className="w-full text-[13px] text-[#111827] bg-transparent outline-none border-b border-[#6366F1] placeholder-[#9CA3AF] pb-0.5"
+        className="w-full text-[13px] bg-transparent outline-none border-b pb-0.5"
+        style={{ color: 'var(--text-1)', borderBottomColor: 'var(--accent)' }}
         placeholder="Task name…"
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -74,25 +78,24 @@ export function DayColumn({ date, onFocusClick }: Props) {
 
   return (
     <div
-      className="flex flex-col flex-shrink-0 border-r border-[#E5E7EB] last:border-r-0"
-      style={{ width: 272 }}
+      className="flex flex-col flex-shrink-0 border-r last:border-r-0"
+      style={{ width: 272, borderColor: 'var(--border)' }}
     >
       {/* Day header */}
       <div
-        className={`px-4 pt-4 pb-3 border-b border-[#F3F4F6] ${
-          isCurrentDay ? 'bg-white' : 'bg-white'
-        }`}
+        className="px-4 pt-4 pb-3 border-b flex-shrink-0"
+        style={{ background: 'var(--surface)', borderColor: 'var(--border-subtle)' }}
       >
         <div className="flex items-start justify-between">
           <div className="flex items-baseline gap-2">
-            <span className={`text-[20px] font-bold leading-none ${isCurrentDay ? 'text-[#111827]' : 'text-[#111827]'}`}>
+            <span className="text-[20px] font-bold leading-none" style={{ color: 'var(--text-1)' }}>
               {format(date, 'EEE')}
             </span>
-            <span className="text-[15px] text-[#9CA3AF] font-normal leading-none">
+            <span className="text-[15px] font-normal leading-none" style={{ color: 'var(--text-4)' }}>
               {format(date, 'MMM d')}
             </span>
             {isCurrentDay && (
-              <span className="ml-1 px-2 py-0.5 text-[11px] font-semibold bg-[#EEF2FF] text-[#6366F1] rounded-full leading-none">
+              <span className="ml-1 px-2 py-0.5 text-[11px] font-semibold rounded-full leading-none" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
                 Today
               </span>
             )}
@@ -100,7 +103,10 @@ export function DayColumn({ date, onFocusClick }: Props) {
 
           {isCurrentDay && onFocusClick && (
             <button
-              className="text-[11px] text-[#9CA3AF] hover:text-[#6366F1] transition-colors ml-2 flex-shrink-0"
+              className="text-[11px] transition-colors ml-2 flex-shrink-0"
+              style={{ color: 'var(--text-4)' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
               onClick={onFocusClick}
             >
               Focus
@@ -109,7 +115,7 @@ export function DayColumn({ date, onFocusClick }: Props) {
         </div>
 
         {tasks.length > 0 && (
-          <div className="mt-1.5 text-[11px] text-[#9CA3AF]">
+          <div className="mt-1.5 text-[11px]" style={{ color: 'var(--text-4)' }}>
             {tasks.filter((t) => t.is_completed).length}/{tasks.length} done
           </div>
         )}
@@ -118,7 +124,8 @@ export function DayColumn({ date, onFocusClick }: Props) {
       {/* Tasks + drop zone */}
       <div
         ref={setNodeRef}
-        className={`flex-1 overflow-y-auto transition-colors ${isOver ? 'bg-[#F5F3FF]' : 'bg-white'}`}
+        className="flex-1 overflow-y-auto transition-colors"
+        style={{ background: isOver ? 'var(--accent-bg)' : 'var(--surface)' }}
       >
         <InlineAdd dateStr={dateStr} />
 

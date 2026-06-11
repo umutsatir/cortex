@@ -1,6 +1,6 @@
 import { format, addDays, isSameWeek } from 'date-fns';
-import { motion } from 'framer-motion';
 import { useTaskStore } from '../../store/taskStore';
+import { SettingsButton } from '../layout/SettingsButton';
 
 interface Props {
   onTodayClick?: () => void;
@@ -34,64 +34,89 @@ export function WeekNav({ onTodayClick }: Props) {
   return (
     <div
       data-tauri-drag-region
-      className="flex items-center gap-2 border-b border-[#E5E7EB] bg-white flex-shrink-0"
-      style={{ height: 52, paddingLeft: showBrainDump ? 12 : 80, paddingRight: 12 }}
+      className="flex items-center gap-2 border-b flex-shrink-0"
+      style={{
+        height: 52,
+        paddingLeft: showBrainDump ? 12 : 80,
+        paddingRight: 12,
+        borderColor: 'var(--border)',
+        background: 'var(--surface)',
+      }}
     >
       {/* Left panel toggle */}
       <button
         onClick={toggleBrainDump}
-        className={`flex items-center justify-center w-7 h-7 rounded-lg transition-colors flex-shrink-0 ${
-          showBrainDump ? 'text-[#6366F1] bg-[#EEF2FF]' : 'text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6]'
-        }`}
+        className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors flex-shrink-0"
+        style={{
+          color: showBrainDump ? 'var(--accent)' : 'var(--text-4)',
+          background: showBrainDump ? 'var(--accent-bg)' : 'transparent',
+        }}
+        onMouseEnter={(e) => { if (!showBrainDump) (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'; }}
+        onMouseLeave={(e) => { if (!showBrainDump) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <PanelIcon side="left" />
       </button>
 
       {/* Week navigation */}
-      <motion.button whileHover={{ backgroundColor: '#F3F4F6' }} whileTap={{ scale: 0.92 }}
-        transition={{ duration: 0.1 }} onClick={() => navigateWeek('prev')}
-        className="w-6 h-6 flex items-center justify-center rounded-md text-[#6B7280] flex-shrink-0"
+      <button
+        onClick={() => navigateWeek('prev')}
+        className="w-6 h-6 flex items-center justify-center rounded-md transition-colors flex-shrink-0"
+        style={{ color: 'var(--text-3)' }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
           <path d="M8 2L4 6L8 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </motion.button>
+      </button>
 
-      <span className="text-[13px] font-medium text-[#374151] select-none flex-shrink-0">{label}</span>
+      <span className="text-[13px] font-medium select-none flex-shrink-0" style={{ color: 'var(--text-2)' }}>{label}</span>
 
-      <motion.button whileHover={{ backgroundColor: '#F3F4F6' }} whileTap={{ scale: 0.92 }}
-        transition={{ duration: 0.1 }} onClick={() => navigateWeek('next')}
-        className="w-6 h-6 flex items-center justify-center rounded-md text-[#6B7280] flex-shrink-0"
+      <button
+        onClick={() => navigateWeek('next')}
+        className="w-6 h-6 flex items-center justify-center rounded-md transition-colors flex-shrink-0"
+        style={{ color: 'var(--text-3)' }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
           <path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </motion.button>
+      </button>
 
-      <motion.button onClick={onTodayClick} whileTap={{ scale: 0.95 }}
-        animate={{ backgroundColor: isCurrentWeek ? '#EEF2FF' : '#F3F4F6', color: isCurrentWeek ? '#6366F1' : '#374151', borderColor: isCurrentWeek ? '#C7D2FE' : '#E5E7EB' }}
-        whileHover={{ backgroundColor: '#EEF2FF', color: '#6366F1', borderColor: '#C7D2FE' }}
-        transition={{ duration: 0.15 }}
-        className="px-3 py-1 text-[12px] font-medium rounded-lg border cursor-pointer flex-shrink-0"
+      <button
+        onClick={onTodayClick}
+        className="px-3 py-1 text-[12px] font-medium rounded-lg border cursor-pointer flex-shrink-0 transition-colors"
+        style={{
+          background: isCurrentWeek ? 'var(--accent-bg)' : 'var(--surface-3)',
+          color: isCurrentWeek ? 'var(--accent)' : 'var(--text-2)',
+          borderColor: isCurrentWeek ? 'var(--accent-border)' : 'var(--border)',
+        }}
       >
         Today
-      </motion.button>
+      </button>
 
       {/* View switcher */}
-      <div className="flex items-center gap-1 bg-[#F3F4F6] rounded-lg p-[3px] ml-auto flex-shrink-0">
+      <div className="flex items-center gap-1 rounded-lg p-[3px] ml-auto flex-shrink-0" style={{ background: 'var(--surface-3)' }}>
         <button
           onClick={() => setView('main')}
-          className={`px-3 py-1 text-[12px] font-medium rounded-md transition-all ${
-            currentView === 'main' ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'
-          }`}
+          className="px-3 py-1 text-[12px] font-medium rounded-md transition-all"
+          style={{
+            background: currentView === 'main' ? 'var(--surface)' : 'transparent',
+            color: currentView === 'main' ? 'var(--text-1)' : 'var(--text-3)',
+            boxShadow: currentView === 'main' ? '0 1px 3px rgba(0,0,0,.08)' : 'none',
+          }}
         >
           Week
         </button>
         <button
           onClick={() => setView('today')}
-          className={`px-3 py-1 text-[12px] font-medium rounded-md transition-all ${
-            currentView === 'today' ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'
-          }`}
+          className="px-3 py-1 text-[12px] font-medium rounded-md transition-all"
+          style={{
+            background: currentView === 'today' ? 'var(--surface)' : 'transparent',
+            color: currentView === 'today' ? 'var(--text-1)' : 'var(--text-3)',
+            boxShadow: currentView === 'today' ? '0 1px 3px rgba(0,0,0,.08)' : 'none',
+          }}
         >
           Today
         </button>
@@ -100,12 +125,18 @@ export function WeekNav({ onTodayClick }: Props) {
       {/* Right panel toggle */}
       <button
         onClick={toggleTimebox}
-        className={`flex items-center justify-center w-7 h-7 rounded-lg transition-colors flex-shrink-0 ${
-          showTimebox ? 'text-[#6366F1] bg-[#EEF2FF]' : 'text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6]'
-        }`}
+        className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors flex-shrink-0"
+        style={{
+          color: showTimebox ? 'var(--accent)' : 'var(--text-4)',
+          background: showTimebox ? 'var(--accent-bg)' : 'transparent',
+        }}
+        onMouseEnter={(e) => { if (!showTimebox) (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'; }}
+        onMouseLeave={(e) => { if (!showTimebox) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <PanelIcon side="right" />
       </button>
+
+      <SettingsButton />
     </div>
   );
 }

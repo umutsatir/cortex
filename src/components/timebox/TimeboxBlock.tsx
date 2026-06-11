@@ -34,8 +34,8 @@ export function TimeboxBlock({ task, color }: Props) {
   const endMin = timeToMinutes(task.timebox_end);
   const height = Math.max(((endMin - startMin) / 60) * HOUR_PX, 24);
 
-  const completedStyle = task.is_completed
-    ? { bg: '#F3F4F6', border: '#E5E7EB', text: '#9CA3AF' }
+  const completedStyle: ColorScheme = task.is_completed
+    ? { bg: 'var(--surface-3)', border: 'var(--border)', text: 'var(--text-4)' }
     : color;
 
   function handleResizeMouseDown(e: React.MouseEvent) {
@@ -71,7 +71,7 @@ export function TimeboxBlock({ task, color }: Props) {
         background: completedStyle.bg,
         borderColor: completedStyle.border,
       }}
-      className="relative rounded-lg border px-2 py-1 cursor-grab active:cursor-grabbing flex flex-col gap-0.5 overflow-hidden select-none"
+      className="relative rounded-lg border px-2 py-1 cursor-grab active:cursor-grabbing flex flex-col gap-0.5 overflow-hidden select-none group/block"
       {...attributes}
       {...listeners}
     >
@@ -99,6 +99,20 @@ export function TimeboxBlock({ task, color }: Props) {
         >
           {task.title}
         </span>
+        {/* Remove from timebox */}
+        <button
+          className="flex-shrink-0 opacity-0 group-hover/block:opacity-100 transition-opacity rounded"
+          style={{ color: completedStyle.text }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            updateTask(task.id, { timebox_start: null, timebox_end: null });
+          }}
+        >
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+            <path d="M1.5 1.5l6 6M7.5 1.5l-6 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          </svg>
+        </button>
       </div>
 
       {height > 40 && (

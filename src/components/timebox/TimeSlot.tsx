@@ -11,7 +11,11 @@ export function TimeSlot({ hour }: Props) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex-shrink-0 h-[60px] border-b border-[#F3F4F6] transition-colors ${isOver ? 'bg-[#EEF2FF]' : ''}`}
+      className="flex-shrink-0 h-[60px] border-b transition-colors"
+      style={{
+        borderColor: 'var(--border-subtle)',
+        background: isOver ? 'var(--accent-bg)' : 'transparent',
+      }}
     />
   );
 }

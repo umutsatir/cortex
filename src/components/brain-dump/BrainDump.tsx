@@ -13,21 +13,24 @@ export function BrainDump() {
   const { setNodeRef, isOver } = useDroppable({ id: 'braindump' });
 
   return (
-    <div className="w-[280px] flex-shrink-0 flex flex-col border-r border-[#E5E7EB] bg-white h-full">
-      {/* Header — 52px, clears macOS traffic lights */}
+    <div
+      className="w-[280px] flex-shrink-0 flex flex-col border-r h-full"
+      style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
+    >
       <div
         data-tauri-drag-region
-        className="flex items-center border-b border-[#E5E7EB] flex-shrink-0"
-        style={{ height: 52, paddingLeft: 80, paddingRight: 16 }}
+        className="flex items-center border-b flex-shrink-0"
+        style={{ height: 52, paddingLeft: 80, paddingRight: 16, borderColor: 'var(--border)' }}
       >
-        <span className="text-[13px] font-semibold text-[#111827]">Brain Dump</span>
+        <span className="text-[13px] font-semibold" style={{ color: 'var(--text-1)' }}>Brain Dump</span>
       </div>
 
       <TaskInput placeholder="Capture a thought…" />
 
       <div
         ref={setNodeRef}
-        className={`flex-1 overflow-y-auto py-1 transition-colors ${isOver ? 'bg-[#F5F3FF]' : ''}`}
+        className="flex-1 overflow-y-auto py-1 transition-colors"
+        style={{ background: isOver ? 'var(--accent-bg)' : 'transparent' }}
       >
         <AnimatePresence>
           {tasks.map((task) => (
@@ -37,7 +40,7 @@ export function BrainDump() {
 
         {tasks.length === 0 && (
           <div className="px-4 py-8 text-center">
-            <p className="text-[12px] text-[#9CA3AF]">Drop tasks here or type above</p>
+            <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>Drop tasks here or type above</p>
           </div>
         )}
       </div>

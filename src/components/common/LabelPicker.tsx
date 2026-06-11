@@ -15,8 +15,6 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
   const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
   const pickerRef = useRef<HTMLDivElement>(null);
 
-  // Freeze position at mount — recalculating on each render causes the
-  // picker to jump when typing changes the anchor element's layout.
   const [pos] = useState(() => {
     const rect = anchorEl.getBoundingClientRect();
     return { top: rect.bottom + 6, left: Math.min(rect.left, window.innerWidth - 232) };
@@ -56,18 +54,31 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
   return createPortal(
     <div
       ref={pickerRef}
-      className="fixed bg-white border border-[#E5E7EB] rounded-xl shadow-xl overflow-hidden"
-      style={{ top: pos.top, left: pos.left, width: 220, zIndex: 9999 }}
+      className="fixed rounded-xl shadow-xl overflow-hidden"
+      style={{
+        top: pos.top,
+        left: pos.left,
+        width: 220,
+        zIndex: 9999,
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+      }}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {/* Search / create input */}
       <div className="p-2">
         <input
           autoFocus
-          className="w-full text-[13px] outline-none px-2.5 py-1.5 bg-[#F9FAFB] rounded-lg placeholder-[#9CA3AF] border border-transparent focus:border-[#E5E7EB]"
+          className="w-full text-[13px] outline-none px-2.5 py-1.5 rounded-lg border border-transparent transition-colors"
+          style={{
+            background: 'var(--surface-2)',
+            color: 'var(--text-1)',
+          }}
           placeholder="Search or create…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--border)'; }}
+          onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'transparent'; }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && showCreate) handleCreate();
           }}
@@ -78,7 +89,10 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
       <div className="max-h-52 overflow-y-auto">
         {selectedId && !query && (
           <button
-            className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[#F9FAFB] text-left text-[12px] text-[#9CA3AF] transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors"
+            style={{ color: 'var(--text-4)' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             onClick={() => { onSelect(null); onClose(); }}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -89,7 +103,7 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
         )}
 
         {filtered.length === 0 && !showCreate && (
-          <div className="px-3 py-3 text-[12px] text-[#9CA3AF] text-center">
+          <div className="px-3 py-3 text-[12px] text-center" style={{ color: 'var(--text-4)' }}>
             {query ? 'No match' : 'No labels yet — type to create'}
           </div>
         )}
@@ -97,23 +111,28 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
         {filtered.map((label) => (
           <button
             key={label.id}
-            className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[#F9FAFB] text-left transition-colors group/lbl"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors group/lbl"
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             onClick={() => { onSelect(selectedId === label.id ? null : label.id); onClose(); }}
           >
             <span
               className="w-3 h-3 rounded-full flex-shrink-0"
               style={{ background: label.color }}
             />
-            <span className="text-[13px] text-[#374151] flex-1 truncate">{label.name}</span>
+            <span className="text-[13px] flex-1 truncate" style={{ color: 'var(--text-2)' }}>{label.name}</span>
             <div className="flex items-center gap-1 opacity-0 group-hover/lbl:opacity-100 transition-opacity">
               {selectedId === label.id && (
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                  <path d="M1.5 5.5l3 3 5-5" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M1.5 5.5l3 3 5-5" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
               <button
-                className="text-[#D1D5DB] hover:text-[#EF4444] transition-colors"
+                className="transition-colors"
+                style={{ color: 'var(--text-5)' }}
                 onPointerDown={(e) => e.stopPropagation()}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#EF4444'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-5)'; }}
                 onClick={(e) => { e.stopPropagation(); deleteLabel(label.id); if (selectedId === label.id) onSelect(null); }}
                 title="Delete label"
               >
@@ -128,8 +147,8 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
 
       {/* Create new label */}
       {showCreate && (
-        <div className="border-t border-[#F3F4F6] p-3">
-          <div className="text-[10px] font-medium uppercase tracking-wider text-[#9CA3AF] mb-2">
+        <div className="border-t p-3" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div className="text-[10px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--text-4)' }}>
             Create "{query.trim()}"
           </div>
           <div className="flex gap-1.5 flex-wrap mb-3">

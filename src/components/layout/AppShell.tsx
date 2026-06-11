@@ -60,7 +60,9 @@ export function AppShell() {
 
   function onDragStart(event: DragStartEvent) {
     const rawId = event.active.id as string;
-    const taskId = rawId.startsWith('tb::') ? rawId.slice(4) : rawId;
+    const taskId = rawId.startsWith('tb::') ? rawId.slice(4)
+                 : rawId.startsWith('eis::') ? rawId.slice(5)
+                 : rawId;
     setActiveTask(tasks.find((t) => t.id === taskId) ?? null);
   }
 
@@ -76,7 +78,7 @@ export function AppShell() {
       onDragStart={onDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="absolute inset-0 flex overflow-hidden bg-[#FAFAFA]">
+      <div className="absolute inset-0 flex overflow-hidden" style={{ background: 'var(--bg)' }}>
         <AnimatePresence mode="wait" initial={false}>
           {currentView === 'main' ? (
             <motion.div
@@ -136,7 +138,7 @@ export function AppShell() {
 
       <DragOverlay>
         {activeTask && (
-          <div className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 shadow-lg text-[13px] text-[#111827] opacity-90 max-w-[220px] truncate">
+          <div className="rounded-lg px-3 py-2 shadow-lg text-[13px] opacity-90 max-w-[220px] truncate" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-1)' }}>
             {activeTask.title}
           </div>
         )}

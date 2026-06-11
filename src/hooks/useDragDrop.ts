@@ -26,9 +26,21 @@ export function useDragDrop() {
     if (!over) return;
 
     const rawId = active.id as string;
-    // Strip timebox-block prefix so the same task ID is used regardless of drag origin
-    const taskId = rawId.startsWith('tb::') ? rawId.slice(4) : rawId;
     const overId = over.id as string;
+
+    // Timebox blocks (tb::) can only move between timebox slots
+    if (rawId.startsWith('tb::')) {
+      if (!overId.startsWith('timebox__')) return;
+    }
+
+    // Eisenhower copies (eis::) can only move between eisenhower quadrants
+    if (rawId.startsWith('eis::')) {
+      if (!overId.startsWith('eisenhower__')) return;
+    }
+
+    const taskId = rawId.startsWith('tb::') ? rawId.slice(4)
+                 : rawId.startsWith('eis::') ? rawId.slice(5)
+                 : rawId;
 
     if (overId === 'braindump') {
       updateTask(taskId, {

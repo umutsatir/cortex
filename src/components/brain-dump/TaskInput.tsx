@@ -24,8 +24,13 @@ export function TaskInput({ onAdd, placeholder = 'Add task…', scheduledDate = 
 
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2 px-3 py-2">
-      <div className="flex items-center gap-2 flex-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-3 py-2 focus-within:border-[#6366F1] focus-within:bg-white transition-colors">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-[#9CA3AF] flex-shrink-0">
+      <div
+        className="flex items-center gap-2 flex-1 rounded-lg px-3 py-2 transition-colors"
+        style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+        onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLElement).style.background = 'var(--surface)'; }}
+        onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="flex-shrink-0" style={{ color: 'var(--text-4)' }}>
           <line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
@@ -35,7 +40,8 @@ export function TaskInput({ onAdd, placeholder = 'Add task…', scheduledDate = 
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={placeholder}
-          className="flex-1 bg-transparent text-[13px] text-[#111827] placeholder-[#9CA3AF] outline-none min-w-0"
+          className="flex-1 bg-transparent text-[13px] outline-none min-w-0"
+          style={{ color: 'var(--text-1)' }}
         />
       </div>
     </form>

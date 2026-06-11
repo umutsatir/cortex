@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { Priority } from '../../types';
 
 const OPTIONS: { value: Priority | null; label: string; color: string }[] = [
-  { value: null,     label: 'No priority', color: '#9CA3AF' },
+  { value: null,     label: 'No priority', color: 'var(--text-4)' },
   { value: 'high',   label: 'High',        color: '#EF4444' },
   { value: 'medium', label: 'Medium',      color: '#F59E0B' },
   { value: 'low',    label: 'Low',         color: '#10B981' },
@@ -44,14 +44,23 @@ export function PriorityPicker({ anchorEl, selected, onSelect, onClose }: Props)
   return createPortal(
     <div
       ref={ref}
-      className="fixed bg-white border border-[#E5E7EB] rounded-xl shadow-xl py-1 overflow-hidden"
-      style={{ top: pos.top, left: pos.left, width: 152, zIndex: 9999 }}
+      className="fixed rounded-xl shadow-xl py-1 overflow-hidden"
+      style={{
+        top: pos.top,
+        left: pos.left,
+        width: 152,
+        zIndex: 9999,
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+      }}
       onPointerDown={(e) => e.stopPropagation()}
     >
       {OPTIONS.map((opt) => (
         <button
           key={String(opt.value)}
-          className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[#F9FAFB] text-left transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors"
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
           onClick={() => { onSelect(opt.value); onClose(); }}
         >
           <svg width="11" height="13" viewBox="0 0 11 13" fill="none">
@@ -63,10 +72,10 @@ export function PriorityPicker({ anchorEl, selected, onSelect, onClose }: Props)
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-[13px] text-[#374151]">{opt.label}</span>
+          <span className="text-[13px]" style={{ color: 'var(--text-2)' }}>{opt.label}</span>
           {selected === opt.value && (
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="ml-auto">
-              <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
         </button>
