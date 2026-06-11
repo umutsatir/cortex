@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '../../store/taskStore';
 import { SettingsPanel } from '../settings/SettingsPanel';
 
@@ -135,9 +136,9 @@ export function Header() {
         </button>
       </div>
 
-      {settingsOpen && gearRef.current && (
-        <SettingsPanel anchorEl={gearRef.current} onClose={() => setSettingsOpen(false)} />
-      )}
+      <AnimatePresence>
+        {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

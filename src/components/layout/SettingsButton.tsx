@@ -1,14 +1,13 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { SettingsPanel } from '../settings/SettingsPanel';
 
 export function SettingsButton() {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLButtonElement>(null);
 
   return (
     <>
       <button
-        ref={ref}
         onClick={() => setOpen((v) => !v)}
         title="Settings"
         className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors flex-shrink-0"
@@ -28,9 +27,9 @@ export function SettingsButton() {
         </svg>
       </button>
 
-      {open && ref.current && (
-        <SettingsPanel anchorEl={ref.current} onClose={() => setOpen(false)} />
-      )}
+      <AnimatePresence>
+        {open && <SettingsPanel onClose={() => setOpen(false)} />}
+      </AnimatePresence>
     </>
   );
 }
