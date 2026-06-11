@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src-tauri/icons/icon.png" width="96" alt="Cortex" />
+  <img src="src-tauri/icons/icon.png?raw=true" width="96" alt="Cortex" />
 </p>
 
 # Cortex
