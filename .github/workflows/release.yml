@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - stable
 
 jobs:
   build-macos:
@@ -27,10 +27,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Cortex ${{ github.ref_name }}'
+          tagName: 'v${{ github.run_number }}'
+          releaseName: 'Cortex v${{ github.run_number }}'
           releaseBody: |
-            ## Cortex ${{ github.ref_name }}
+            ## Cortex v${{ github.run_number }}
 
             Download the `.dmg` file below to install on macOS.
           releaseDraft: false
