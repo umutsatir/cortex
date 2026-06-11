@@ -58,6 +58,9 @@ const dict: Record<Lang, Record<string, string>> = {
     'Due in': 'Due in',
     'days': 'days',
     'Add': 'Add',
+    'of': 'of',
+    'Timeboxed': 'Timeboxed',
+    'e.g. 1h 30m': 'e.g. 1h 30m',
   },
   tr: {
     'Brain Dump': 'Aklındakileri Yazıya Dök',
@@ -113,8 +116,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'Low': 'Düşük',
     'Due today': 'Bugün bitiyor',
     'd overdue': 'g gecikmiş',
-    'Due in': 'Bitiş',
+    'Due in': 'Bitiş:',
     'days': 'gün',
+    'of': '/',
+    'Timeboxed': 'Zaman kutusu:',
+    'e.g. 1h 30m': 'örn. 1s 30d',
     'Add': 'Ekle',
   },
 };

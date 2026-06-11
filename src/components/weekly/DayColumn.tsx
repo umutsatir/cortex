@@ -5,6 +5,7 @@ import { format, isToday } from 'date-fns';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
+import { useDateLocale } from '../../hooks/useDateLocale';
 import { TaskItem } from '../brain-dump/TaskItem';
 
 function InlineAdd({ dateStr }: { dateStr: string }) {
@@ -72,6 +73,7 @@ export function DayColumn({ date, onFocusClick }: Props) {
   const dateStr = format(date, 'yyyy-MM-dd');
   const isCurrentDay = isToday(date);
   const t = useT();
+  const locale = useDateLocale();
 
   const tasks = useTaskStore(useShallow((s) =>
     s.tasks.filter((task) => task.scheduled_date === dateStr)
@@ -92,10 +94,10 @@ export function DayColumn({ date, onFocusClick }: Props) {
         <div className="flex items-start justify-between">
           <div className="flex items-baseline gap-2">
             <span className="text-[20px] font-bold leading-none" style={{ color: 'var(--text-1)' }}>
-              {format(date, 'EEE')}
+              {format(date, 'EEE', { locale })}
             </span>
             <span className="text-[15px] font-normal leading-none" style={{ color: 'var(--text-4)' }}>
-              {format(date, 'MMM d')}
+              {format(date, 'MMM d', { locale })}
             </span>
             {isCurrentDay && (
               <span className="ml-1 px-2 py-0.5 text-[11px] font-semibold rounded-full leading-none" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>

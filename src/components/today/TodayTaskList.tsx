@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
+import { useDateLocale } from '../../hooks/useDateLocale';
 import { TaskItem } from '../brain-dump/TaskItem';
 import { TaskInput } from '../brain-dump/TaskInput';
 
@@ -15,6 +16,7 @@ export function TodayTaskList() {
 
   const { setNodeRef, isOver } = useDroppable({ id: `day__${today}` });
   const t = useT();
+  const locale = useDateLocale();
   const completedCount = tasks.filter((task) => task.is_completed).length;
 
   return (
@@ -28,11 +30,11 @@ export function TodayTaskList() {
         style={{ height: 52, paddingLeft: 80, paddingRight: 16, borderColor: 'var(--border)' }}
       >
         <div className="text-[13px] font-semibold" style={{ color: 'var(--text-1)' }}>
-          {format(new Date(), 'EEEE, MMM d')}
+          {format(new Date(), 'EEEE, MMM d', { locale })}
         </div>
         {tasks.length > 0 && (
           <div className="text-[11px]" style={{ color: 'var(--text-4)' }}>
-            {completedCount} of {tasks.length} {t('done')}
+            {completedCount} {t('of')} {tasks.length} {t('done')}
           </div>
         )}
       </div>

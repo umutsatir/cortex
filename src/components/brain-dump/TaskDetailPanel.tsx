@@ -30,10 +30,10 @@ function formatMinutes(min: number): string {
   return `${h}h ${m}m`;
 }
 
-const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; bg: string }> = {
-  low:    { label: 'Low',    color: '#10B981', bg: '#D1FAE5' },
-  medium: { label: 'Medium', color: '#F59E0B', bg: '#FEF3C7' },
-  high:   { label: 'High',   color: '#EF4444', bg: '#FEE2E2' },
+const PRIORITY_CONFIG: Record<Priority, { labelKey: string; color: string; bg: string }> = {
+  low:    { labelKey: 'Low',    color: '#10B981', bg: '#D1FAE5' },
+  medium: { labelKey: 'Medium', color: '#F59E0B', bg: '#FEF3C7' },
+  high:   { labelKey: 'High',   color: '#EF4444', bg: '#FEE2E2' },
 };
 
 interface RowProps {
@@ -225,7 +225,7 @@ export function TaskDetailPanel() {
               <input
                 className="text-[13px] bg-transparent outline-none border-b border-transparent w-28 transition-colors"
                 style={{ color: 'var(--text-2)' }}
-                placeholder="e.g. 1h 30m"
+                placeholder={t('e.g. 1h 30m')}
                 value={estimatedVal}
                 onChange={(e) => setEstimatedVal(e.target.value)}
                 onBlur={saveEstimated}
@@ -256,7 +256,7 @@ export function TaskDetailPanel() {
                         border: `1px solid ${active ? cfg.color + '50' : 'var(--border)'}`,
                       }}
                     >
-                      {cfg.label}
+                      {t(cfg.labelKey)}
                     </button>
                   );
                 })}
@@ -281,7 +281,7 @@ export function TaskDetailPanel() {
                     <span className="text-[13px] font-medium" style={{ color: currentLabel.color }}>{currentLabel.name}</span>
                   </>
                 ) : (
-                  <span className="text-[13px]" style={{ color: 'var(--text-4)' }}>Click to add</span>
+                  <span className="text-[13px]" style={{ color: 'var(--text-4)' }}>{t('Click to add')}</span>
                 )}
               </button>
             </DetailRow>
@@ -318,7 +318,7 @@ export function TaskDetailPanel() {
                   <path d="M6 3.5v2.5l1.5 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
                 <span className="text-[12px]" style={{ color: 'var(--accent-text)' }}>
-                  Timeboxed {formatTimeStr(task.timebox_start!, timeFormat)} – {formatTimeStr(task.timebox_end!, timeFormat)}
+                  {t('Timeboxed')} {formatTimeStr(task.timebox_start!, timeFormat)} – {formatTimeStr(task.timebox_end!, timeFormat)}
                 </span>
               </div>
             )}

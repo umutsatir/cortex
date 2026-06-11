@@ -7,6 +7,7 @@ import { useLabelStore } from '../../store/labelStore';
 import { useGeneralStore } from '../../store/generalStore';
 import { useIsDark } from '../../hooks/useIsDark';
 import { useT } from '../../hooks/useT';
+import { useDateLocale } from '../../hooks/useDateLocale';
 import { TimeboxBlock } from './TimeboxBlock';
 import type { Task } from '../../types';
 
@@ -170,6 +171,7 @@ export function Timebox() {
 
   const isDark = useIsDark();
   const t = useT();
+  const locale = useDateLocale();
   const timeFormat = useGeneralStore((s) => s.timeFormat);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [nowOffset, setNowOffset] = useState<number | null>(null);
@@ -201,7 +203,7 @@ export function Timebox() {
 
   const dateObj = parseISO(timeboxDate);
   const isCurToday = isToday(dateObj);
-  const dayLabel = format(dateObj, 'EEE');
+  const dayLabel = format(dateObj, 'EEE', { locale });
   const dayNum = format(dateObj, 'd');
 
   return (
