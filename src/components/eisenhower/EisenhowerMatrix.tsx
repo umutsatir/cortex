@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
+import { useT } from '../../hooks/useT';
 import { SettingsButton } from '../layout/SettingsButton';
 import { Quadrant } from './Quadrant';
 import type { EisenhowerQuadrant } from '../../types';
@@ -18,6 +19,7 @@ export function EisenhowerMatrix() {
   const toggleTimebox   = useTaskStore((s) => s.toggleTimebox);
   const showBrainDump   = useTaskStore((s) => s.showBrainDump);
   const showTimebox     = useTaskStore((s) => s.showTimebox);
+  const t = useT();
 
   function PanelIcon({ side }: { side: 'left' | 'right' }) {
     return (
@@ -57,7 +59,7 @@ export function EisenhowerMatrix() {
           <PanelIcon side="left" />
         </button>
 
-        <span className="text-[13px] font-semibold select-none" style={{ color: 'var(--text-1)' }}>Focus</span>
+        <span className="text-[13px] font-semibold select-none" style={{ color: 'var(--text-1)' }}>{t('Focus')}</span>
 
         <div className="flex items-center gap-1 rounded-lg p-[3px] ml-auto flex-shrink-0" style={{ background: 'var(--surface-3)' }}>
           <button
@@ -69,7 +71,7 @@ export function EisenhowerMatrix() {
               boxShadow: currentView === 'main' ? '0 1px 3px rgba(0,0,0,.08)' : 'none',
             }}
           >
-            Week
+            {t('Week')}
           </button>
           <button
             onClick={() => setView('today')}
@@ -80,7 +82,7 @@ export function EisenhowerMatrix() {
               boxShadow: currentView === 'today' ? '0 1px 3px rgba(0,0,0,.08)' : 'none',
             }}
           >
-            Today
+            {t('Today')}
           </button>
         </div>
 

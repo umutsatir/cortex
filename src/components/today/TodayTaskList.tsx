@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
+import { useT } from '../../hooks/useT';
 import { TaskItem } from '../brain-dump/TaskItem';
 import { TaskInput } from '../brain-dump/TaskInput';
 
@@ -13,8 +14,8 @@ export function TodayTaskList() {
   ));
 
   const { setNodeRef, isOver } = useDroppable({ id: `day__${today}` });
-
-  const completedCount = tasks.filter((t) => t.is_completed).length;
+  const t = useT();
+  const completedCount = tasks.filter((task) => task.is_completed).length;
 
   return (
     <div
@@ -31,12 +32,12 @@ export function TodayTaskList() {
         </div>
         {tasks.length > 0 && (
           <div className="text-[11px]" style={{ color: 'var(--text-4)' }}>
-            {completedCount} of {tasks.length} done
+            {completedCount} of {tasks.length} {t('done')}
           </div>
         )}
       </div>
 
-      <TaskInput placeholder="Add to today…" scheduledDate={today} />
+      <TaskInput placeholder={t('Add to today…')} scheduledDate={today} />
 
       <div
         ref={setNodeRef}
@@ -51,7 +52,7 @@ export function TodayTaskList() {
 
         {tasks.length === 0 && (
           <div className="px-4 py-8 text-center">
-            <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>No tasks for today yet</p>
+            <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>{t('No tasks for today yet')}</p>
           </div>
         )}
       </div>

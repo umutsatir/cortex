@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '../../store/taskStore';
 import { useIsDark } from '../../hooks/useIsDark';
+import { useT } from '../../hooks/useT';
 import { TaskItem } from '../brain-dump/TaskItem';
 import type { EisenhowerQuadrant, Task } from '../../types';
 
@@ -45,6 +46,7 @@ export function Quadrant({ quadrant, tasks }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: `eisenhower__${quadrant}` });
   const updateTask = useTaskStore((s) => s.updateTask);
   const isDark = useIsDark();
+  const t = useT();
 
   const bg     = isDark ? config.darkBg    : config.bg;
   const border = isDark ? config.darkBorder : config.border;
@@ -62,9 +64,9 @@ export function Quadrant({ quadrant, tasks }: Props) {
       <div className="px-3 py-2.5 flex items-center justify-between flex-shrink-0" style={{ borderBottom: `1px solid ${border}` }}>
         <div>
           <div className="text-[12px] font-semibold" style={{ color: config.accent }}>
-            {config.label}
+            {t(config.label)}
           </div>
-          <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-4)' }}>{config.sublabel}</div>
+          <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-4)' }}>{t(config.sublabel)}</div>
         </div>
         {tasks.length > 0 && (
           <span
@@ -94,7 +96,7 @@ export function Quadrant({ quadrant, tasks }: Props) {
 
         {tasks.length === 0 && (
           <div className="px-3 py-4 text-center">
-            <p className="text-[11px]" style={{ color: 'var(--text-5)' }}>Drop tasks here</p>
+            <p className="text-[11px]" style={{ color: 'var(--text-5)' }}>{t('Drop tasks here')}</p>
           </div>
         )}
       </div>

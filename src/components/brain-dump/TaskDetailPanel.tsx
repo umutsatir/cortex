@@ -4,6 +4,9 @@ import { format, differenceInCalendarDays } from 'date-fns';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useLabelStore } from '../../store/labelStore';
+import { useGeneralStore } from '../../store/generalStore';
+import { useT } from '../../hooks/useT';
+import { formatTimeStr } from '../timebox/Timebox';
 import { LabelPicker } from '../common/LabelPicker';
 import { PriorityPicker } from '../common/PriorityPicker';
 import type { Priority } from '../../types';
@@ -62,6 +65,8 @@ export function TaskDetailPanel() {
     }))
   );
   const labels = useLabelStore((s) => s.labels);
+  const timeFormat = useGeneralStore((s) => s.timeFormat);
+  const t = useT();
   const task = tasks.find((t) => t.id === selectedTaskId) ?? null;
   const currentLabel = labels.find((l) => l.id === task?.label) ?? null;
 
@@ -183,7 +188,7 @@ export function TaskDetailPanel() {
             {/* Due date */}
             <DetailRow
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2.5" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" /><path d="M1.5 5.5h11M5 1v3M9 1v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>}
-              label="Due date"
+              label={t('Due date')}
             >
               <div className="flex items-center gap-2">
                 <input
@@ -207,7 +212,7 @@ export function TaskDetailPanel() {
             {/* List */}
             <DetailRow
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.2" /><path d="M4.5 4.5h5M4.5 7h5M4.5 9.5h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>}
-              label="List"
+              label={t('List')}
             >
               <span className="font-medium" style={{ color: 'var(--accent)' }}>{listLabel}</span>
             </DetailRow>
@@ -215,7 +220,7 @@ export function TaskDetailPanel() {
             {/* Estimated time */}
             <DetailRow
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" /><path d="M7 4v3l2 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>}
-              label="Estimated"
+              label={t('Estimated')}
             >
               <input
                 className="text-[13px] bg-transparent outline-none border-b border-transparent w-28 transition-colors"
@@ -234,7 +239,7 @@ export function TaskDetailPanel() {
             {/* Priority */}
             <DetailRow
               icon={<svg width="11" height="13" viewBox="0 0 9 11" fill="none"><path d="M1 10V1l7 4-7 4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>}
-              label="Priority"
+              label={t('Priority')}
             >
               <div className="flex gap-1.5">
                 {(['low', 'medium', 'high'] as Priority[]).map((p) => {
@@ -261,7 +266,7 @@ export function TaskDetailPanel() {
             {/* Label */}
             <DetailRow
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" /><circle cx="7" cy="7" r="1.8" fill="currentColor" /></svg>}
-              label="Label"
+              label={t('Label')}
             >
               <button
                 ref={labelBtnRef}
@@ -283,12 +288,12 @@ export function TaskDetailPanel() {
 
             {/* Notes */}
             <div className="mt-4 pb-4">
-              <div className="text-[12px] font-medium mb-2" style={{ color: 'var(--text-2)' }}>Notes</div>
+              <div className="text-[12px] font-medium mb-2" style={{ color: 'var(--text-2)' }}>{t('Notes')}</div>
               <textarea
                 className="w-full text-[13px] rounded-xl px-3 py-2.5 outline-none transition-all resize-none"
                 style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}
                 rows={4}
-                placeholder="Add any notes to this task…"
+                placeholder={t('Add any notes to this task…')}
                 value={notesVal}
                 onChange={(e) => setNotesVal(e.target.value)}
                 onBlur={saveNotes}
@@ -313,7 +318,7 @@ export function TaskDetailPanel() {
                   <path d="M6 3.5v2.5l1.5 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
                 <span className="text-[12px]" style={{ color: 'var(--accent-text)' }}>
-                  Timeboxed {task.timebox_start} – {task.timebox_end}
+                  Timeboxed {formatTimeStr(task.timebox_start!, timeFormat)} – {formatTimeStr(task.timebox_end!, timeFormat)}
                 </span>
               </div>
             )}
@@ -328,7 +333,7 @@ export function TaskDetailPanel() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
               onClick={() => selectTask(null)}
             >
-              Close · Esc
+              {t('Close · Esc')}
             </button>
           </div>
         </motion.div>

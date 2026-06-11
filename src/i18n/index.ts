@@ -60,7 +60,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'Add': 'Add',
   },
   tr: {
-    'Brain Dump': 'Beyin Dökümü',
+    'Brain Dump': 'Aklındakileri Yazıya Dök',
     'Capture a thought…': 'Düşünce yaz…',
     'Add a task': 'Görev ekle',
     'Add to today…': 'Bugüne ekle…',
@@ -68,7 +68,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'Today': 'Bugün',
     'Week': 'Hafta',
     'Focus': 'Odak',
-    'Timebox': 'Zaman Kutusu',
+    'Timebox': 'Zaman Çizelgesi',
     'Drop tasks here': 'Görevleri buraya bırak',
     'Drop tasks here or type above': 'Buraya bırak veya yukarıya yaz',
     'No tasks for today yet': 'Bugün henüz görev yok',

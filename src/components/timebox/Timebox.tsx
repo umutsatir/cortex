@@ -17,6 +17,14 @@ function formatHour(hour: number, fmt: '12h' | '24h'): string {
   return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
 }
 
+export function formatTimeStr(timeStr: string, fmt: '12h' | '24h'): string {
+  if (fmt === '24h') return timeStr;
+  const [h, m] = timeStr.split(':').map(Number);
+  const period = h < 12 ? 'AM' : 'PM';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return m === 0 ? `${h12} ${period}` : `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 export const START_HOUR = 6;
 const END_HOUR = 24;
 export const HOUR_PX = 60;

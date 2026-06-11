@@ -2,6 +2,8 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
+import { useGeneralStore } from '../../store/generalStore';
+import { formatTimeStr } from './Timebox';
 import type { Task } from '../../types';
 
 const HOUR_PX = 60;
@@ -22,6 +24,7 @@ export function TimeboxBlock({ task, color }: Props) {
   const { toggleComplete, updateTask, selectTask } = useTaskStore(
     useShallow((s) => ({ toggleComplete: s.toggleComplete, updateTask: s.updateTask, selectTask: s.selectTask }))
   );
+  const timeFormat = useGeneralStore((s) => s.timeFormat);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tb::${task.id}`,
@@ -118,7 +121,7 @@ export function TimeboxBlock({ task, color }: Props) {
       {height > 40 && (
         <div className="flex items-center gap-1.5 pl-5">
           <span className="text-[10px]" style={{ color: completedStyle.text + 'BB' }}>
-            {task.timebox_start} – {task.timebox_end}
+            {formatTimeStr(task.timebox_start!, timeFormat)} – {formatTimeStr(task.timebox_end!, timeFormat)}
           </span>
           {task.estimated_minutes != null && task.estimated_minutes > 0 && (() => {
             const blockMin = endMin - startMin;
