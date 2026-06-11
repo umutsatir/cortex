@@ -1,6 +1,7 @@
 import { format, addDays, isSameWeek } from 'date-fns';
 import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
+import { useDateLocale } from '../../hooks/useDateLocale';
 import { SettingsButton } from '../layout/SettingsButton';
 
 interface Props {
@@ -29,9 +30,10 @@ export function WeekNav({ onTodayClick }: Props) {
   const toggleTimebox     = useTaskStore((s) => s.toggleTimebox);
 
   const t = useT();
+  const locale = useDateLocale();
   const weekEnd        = addDays(currentWeekStart, 6);
   const isCurrentWeek  = isSameWeek(new Date(), currentWeekStart, { weekStartsOn: 1 });
-  const label          = `${format(currentWeekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
+  const label          = `${format(currentWeekStart, 'MMM d', { locale })} – ${format(weekEnd, 'MMM d, yyyy', { locale })}`;
 
   return (
     <div
