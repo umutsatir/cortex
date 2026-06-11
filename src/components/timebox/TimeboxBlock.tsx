@@ -18,9 +18,10 @@ interface ColorScheme { bg: string; border: string; text: string }
 interface Props {
   task: Task;
   color: ColorScheme;
+  lang?: string;
 }
 
-export function TimeboxBlock({ task, color }: Props) {
+export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
   const { toggleComplete, updateTask, selectTask } = useTaskStore(
     useShallow((s) => ({ toggleComplete: s.toggleComplete, updateTask: s.updateTask, selectTask: s.selectTask }))
   );
@@ -121,7 +122,7 @@ export function TimeboxBlock({ task, color }: Props) {
       {height > 40 && (
         <div className="flex items-center gap-1.5 pl-5">
           <span className="text-[10px]" style={{ color: completedStyle.text + 'BB' }}>
-            {formatTimeStr(task.timebox_start!, timeFormat)} – {formatTimeStr(task.timebox_end!, timeFormat)}
+            {formatTimeStr(task.timebox_start!, timeFormat, lang)} – {formatTimeStr(task.timebox_end!, timeFormat, lang)}
           </span>
           {task.estimated_minutes != null && task.estimated_minutes > 0 && (() => {
             const blockMin = endMin - startMin;

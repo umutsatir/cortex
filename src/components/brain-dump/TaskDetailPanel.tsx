@@ -66,6 +66,7 @@ export function TaskDetailPanel() {
   );
   const labels = useLabelStore((s) => s.labels);
   const timeFormat = useGeneralStore((s) => s.timeFormat);
+  const language   = useGeneralStore((s) => s.language);
   const t = useT();
   const task = tasks.find((t) => t.id === selectedTaskId) ?? null;
   const currentLabel = labels.find((l) => l.id === task?.label) ?? null;
@@ -318,7 +319,7 @@ export function TaskDetailPanel() {
                   <path d="M6 3.5v2.5l1.5 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
                 <span className="text-[12px]" style={{ color: 'var(--accent-text)' }}>
-                  {t('Timeboxed')} {formatTimeStr(task.timebox_start!, timeFormat)} – {formatTimeStr(task.timebox_end!, timeFormat)}
+                  {t('Timeboxed')} {formatTimeStr(task.timebox_start!, timeFormat, language)} – {formatTimeStr(task.timebox_end!, timeFormat, language)}
                 </span>
               </div>
             )}

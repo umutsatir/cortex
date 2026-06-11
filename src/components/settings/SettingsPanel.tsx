@@ -47,22 +47,22 @@ interface SectionDef {
 
 const SECTIONS: SectionDef[] = [
   {
-    id: 'appearance',
-    labelKey: 'Appearance',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" />
-        <circle cx="7" cy="7" r="2" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
     id: 'general',
     labelKey: 'General',
     icon: (
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <rect x="1.5" y="1.5" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="1.2" />
         <path d="M4.5 5h5M4.5 7h5M4.5 9h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    id: 'appearance',
+    labelKey: 'Appearance',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" />
+        <circle cx="7" cy="7" r="2" fill="currentColor" />
       </svg>
     ),
   },
@@ -116,7 +116,7 @@ export function SettingsPanel({ onClose }: Props) {
   const { language, weekStartsOn, defaultView, timeFormat,
           setLanguage, setDefaultView, setTimeFormat } = useGeneralStore();
   const setWeekStartsOn = useGeneralStore((s) => s.setWeekStartsOn);
-  const [activeSection, setActiveSection] = useState('appearance');
+  const [activeSection, setActiveSection] = useState('general');
   const t = useT();
 
   useEffect(() => {

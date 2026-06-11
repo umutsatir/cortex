@@ -11,19 +11,25 @@ import { useDateLocale } from '../../hooks/useDateLocale';
 import { TimeboxBlock } from './TimeboxBlock';
 import type { Task } from '../../types';
 
-function formatHour(hour: number, fmt: '12h' | '24h'): string {
-  if (fmt === '24h') return `${String(hour).padStart(2, '0')}:00`;
-  if (hour === 0) return '12 AM';
-  if (hour === 12) return '12 PM';
-  return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
+function ampm(h: number, lang: string) {
+  if (lang === 'tr') return h < 12 ? 'ÖÖ' : 'ÖS';
+  return h < 12 ? 'AM' : 'PM';
 }
 
-export function formatTimeStr(timeStr: string, fmt: '12h' | '24h'): string {
+function formatHour(hour: number, fmt: '12h' | '24h', lang: string): string {
+  if (fmt === '24h') return `${String(hour).padStart(2, '0')}:00`;
+  const label = ampm(hour, lang);
+  if (hour === 0) return `12 ${label}`;
+  if (hour === 12) return `12 ${label}`;
+  return hour < 12 ? `${hour} ${label}` : `${hour - 12} ${label}`;
+}
+
+export function formatTimeStr(timeStr: string, fmt: '12h' | '24h', lang = 'en'): string {
   if (fmt === '24h') return timeStr;
   const [h, m] = timeStr.split(':').map(Number);
-  const period = h < 12 ? 'AM' : 'PM';
+  const label = ampm(h, lang);
   const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return m === 0 ? `${h12} ${period}` : `${h12}:${String(m).padStart(2, '0')} ${period}`;
+  return m === 0 ? `${h12} ${label}` : `${h12}:${String(m).padStart(2, '0')} ${label}`;
 }
 
 export const START_HOUR = 6;
@@ -145,14 +151,14 @@ function DropPreview() {
   );
 }
 
-function HourRow({ hour, timeFormat }: { hour: number; timeFormat: '12h' | '24h' }) {
+function HourRow({ hour, timeFormat, lang }: { hour: number; timeFormat: '12h' | '24h'; lang: string }) {
   const timeStr = `${String(hour).padStart(2, '0')}:00`;
   const { setNodeRef } = useDroppable({ id: `timebox__${timeStr}` });
   return (
     <div className="flex" style={{ height: `${HOUR_PX}px` }}>
       <div className="flex-shrink-0 flex items-start pt-1" style={{ width: `${LABEL_W}px` }}>
         <span className="text-[11px] pl-3" style={{ color: 'var(--text-4)' }}>
-          {formatHour(hour, timeFormat)}
+          {formatHour(hour, timeFormat, lang)}
         </span>
       </div>
       <div ref={setNodeRef} className="flex-1 border-b" style={{ borderColor: 'var(--border-subtle)' }} />
@@ -173,6 +179,7 @@ export function Timebox() {
   const t = useT();
   const locale = useDateLocale();
   const timeFormat = useGeneralStore((s) => s.timeFormat);
+  const language  = useGeneralStore((s) => s.language);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [nowOffset, setNowOffset] = useState<number | null>(null);
 
@@ -285,7 +292,7 @@ export function Timebox() {
 
           {hours.map((hour) => (
             <div key={hour} className="absolute w-full" style={{ top: `${(hour - START_HOUR) * HOUR_PX}px`, height: `${HOUR_PX}px` }}>
-              <HourRow hour={hour} timeFormat={timeFormat} />
+              <HourRow hour={hour} timeFormat={timeFormat} lang={language} />
             </div>
           ))}
 
@@ -307,7 +314,7 @@ export function Timebox() {
             const color = getBlockColor(task.id, labelColor, isDark);
             return (
               <div key={task.id} className="absolute" style={{ top: `${timeToOffset(task.timebox_start!)}px`, left: `${left}px`, width: `${width}px` }}>
-                <TimeboxBlock task={task} color={color} />
+                <TimeboxBlock task={task} color={color} lang={language} />
               </div>
             );
           })}
