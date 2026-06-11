@@ -1,8 +1,7 @@
 <p align="center">
   <img src="src-tauri/icons/icon.png?raw=true" width="96" alt="Cortex" />
+  <h1 align="center">Cortex</h1>
 </p>
-
-# Cortex
 
 A focused daily planner built as a native macOS desktop app. Cortex helps you capture tasks, schedule your week, visualise priorities with an Eisenhower matrix, and time-block your day — all in one place.
 
