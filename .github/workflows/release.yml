@@ -67,7 +67,7 @@ jobs:
             exit 1
           fi
 
-          pnpm tauri signer sign "$TAR_GZ"
+          pnpm tauri signer sign --no-password "$TAR_GZ"
 
           SIG=$(cat "${TAR_GZ}.sig")
           UPDATE_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/Cortex_aarch64.app.tar.gz"
