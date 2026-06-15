@@ -54,3 +54,37 @@ jobs:
             > This happens because the app is not yet signed with an Apple Developer certificate. The app is safe to use.
           releaseDraft: false
           prerelease: false
+
+      - name: Upload updater manifest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['version'])")
+          SIG_FILE="src-tauri/target/release/bundle/macos/Cortex.app.tar.gz.sig"
+
+          if [ ! -f "$SIG_FILE" ]; then
+            echo "Signature file not found, skipping updater manifest"
+            exit 0
+          fi
+
+          SIG=$(cat "$SIG_FILE")
+          UPDATE_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/Cortex_aarch64.app.tar.gz"
+          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          python3 -c "
+          import json
+          data = {
+            'version': '${VERSION}',
+            'notes': '',
+            'pub_date': '${PUB_DATE}',
+            'platforms': {
+              'darwin-aarch64': {
+                'signature': '''${SIG}''',
+                'url': '${UPDATE_URL}'
+              }
+            }
+          }
+          print(json.dumps(data, indent=2))
+          " > latest.json
+
+          gh release upload "v${VERSION}" latest.json --clobber
