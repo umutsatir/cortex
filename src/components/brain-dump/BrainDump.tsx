@@ -34,7 +34,7 @@ export function BrainDump() {
         <span className="text-[13px] font-semibold" style={{ color: 'var(--text-1)' }}>{t('Brain Dump')}</span>
       </div>
 
-      <TaskInput placeholder={t('Capture a thought…')} />
+      <TaskInput placeholder={t('Capture a thought…')} captureNewTaskShortcut />
 
       <div
         ref={setNodeRef}

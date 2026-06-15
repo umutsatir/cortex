@@ -1,16 +1,24 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTaskStore } from '../../store/taskStore';
 
 interface Props {
   onAdd?: (title: string) => void;
   placeholder?: string;
   scheduledDate?: string | null;
+  captureNewTaskShortcut?: boolean;
 }
 
-export function TaskInput({ onAdd, placeholder = 'Add task…', scheduledDate = null }: Props) {
+export function TaskInput({ onAdd, placeholder = 'Add task…', scheduledDate = null, captureNewTaskShortcut = false }: Props) {
   const [value, setValue] = useState('');
   const addTask = useTaskStore((s) => s.addTask);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!captureNewTaskShortcut) return;
+    function onNew() { inputRef.current?.focus(); }
+    window.addEventListener('cortex:new-task', onNew);
+    return () => window.removeEventListener('cortex:new-task', onNew);
+  }, [captureNewTaskShortcut]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

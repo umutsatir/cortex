@@ -66,6 +66,18 @@ const SECTIONS: SectionDef[] = [
       </svg>
     ),
   },
+  {
+    id: 'shortcuts',
+    labelKey: 'Shortcuts',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="1" y="3" width="4" height="3" rx="1" stroke="currentColor" strokeWidth="1.2" />
+        <rect x="6.5" y="3" width="4" height="3" rx="1" stroke="currentColor" strokeWidth="1.2" />
+        <rect x="1" y="8" width="4" height="3" rx="1" stroke="currentColor" strokeWidth="1.2" />
+        <rect x="6.5" y="8" width="4" height="3" rx="1" stroke="currentColor" strokeWidth="1.2" />
+      </svg>
+    ),
+  },
 ];
 
 function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -279,6 +291,36 @@ export function SettingsPanel({ onClose }: Props) {
                       })}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {activeSection === 'shortcuts' && (
+                <div className="flex flex-col gap-1">
+                  {([
+                    { key: 'N', description: t('New task') },
+                    { key: 'V', description: t('Toggle view (Week / Today)') },
+                    { key: 'B', description: t('Toggle sidebar') },
+                    { key: 'E', description: t('Toggle timebox') },
+                    { key: ',', description: t('Open settings') },
+                    { key: 'Esc', description: t('Close panel') },
+                  ] as { key: string; description: string }[]).map(({ key, description }) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between py-2.5 border-b last:border-b-0"
+                      style={{ borderColor: 'var(--border-subtle)' }}
+                    >
+                      <span className="text-[13px]" style={{ color: 'var(--text-2)' }}>{description}</span>
+                      <kbd
+                        className="px-2 py-0.5 rounded-md text-[12px] font-medium font-mono"
+                        style={{ background: 'var(--surface-3)', color: 'var(--text-2)', border: '1px solid var(--border)' }}
+                      >
+                        {key}
+                      </kbd>
+                    </div>
+                  ))}
+                  <p className="text-[11px] mt-3" style={{ color: 'var(--text-4)' }}>
+                    {t('Shortcuts work when no input is focused.')}
+                  </p>
                 </div>
               )}
 

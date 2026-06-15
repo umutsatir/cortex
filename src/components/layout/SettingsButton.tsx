@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SettingsPanel } from '../settings/SettingsPanel';
 
 export function SettingsButton() {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    function onOpen() { setOpen(true); }
+    window.addEventListener('cortex:open-settings', onOpen);
+    return () => window.removeEventListener('cortex:open-settings', onOpen);
+  }, []);
 
   return (
     <>
