@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startOfWeek } from 'date-fns';
@@ -67,6 +69,16 @@ const SECTIONS: SectionDef[] = [
     ),
   },
   {
+    id: 'update',
+    labelKey: 'Update',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1v4M7 1L5 3M7 1l2 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M2 7a5 5 0 1010 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     id: 'shortcuts',
     labelKey: 'Shortcuts',
     icon: (
@@ -129,7 +141,26 @@ export function SettingsPanel({ onClose }: Props) {
           setLanguage, setDefaultView, setTimeFormat, setDateFormat } = useGeneralStore();
   const setWeekStartsOn = useGeneralStore((s) => s.setWeekStartsOn);
   const [activeSection, setActiveSection] = useState('general');
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'none' | 'installing'>('idle');
+  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
   const t = useT();
+
+  const checkForUpdate = useCallback(async () => {
+    setUpdateStatus('checking');
+    try {
+      const u = await check();
+      if (u) { setUpdateVersion(u.version); setUpdateStatus('available'); }
+      else { setUpdateStatus('none'); }
+    } catch { setUpdateStatus('none'); }
+  }, []);
+
+  const installUpdate = useCallback(async () => {
+    setUpdateStatus('installing');
+    try {
+      const u = await check();
+      if (u) { await u.downloadAndInstall(); await relaunch(); }
+    } catch { setUpdateStatus('available'); }
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
@@ -294,13 +325,49 @@ export function SettingsPanel({ onClose }: Props) {
                 </div>
               )}
 
+              {activeSection === 'update' && (
+                <div className="flex flex-col gap-4">
+                  <div
+                    className="flex items-center justify-between py-3 border-b"
+                    style={{ borderColor: 'var(--border-subtle)' }}
+                  >
+                    <div>
+                      <div className="text-[13px]" style={{ color: 'var(--text-2)' }}>{t('Current version')}</div>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-4)' }}>
+                        {updateVersion && updateStatus === 'available'
+                          ? `v${updateVersion} ${t('available')}`
+                          : updateStatus === 'none' ? t('You are up to date') : ''}
+                      </div>
+                    </div>
+                    {updateStatus === 'available' ? (
+                      <button
+                        onClick={installUpdate}
+                        className="px-4 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                      >
+                        {t('Install update')}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={checkForUpdate}
+                        disabled={updateStatus === 'checking' || updateStatus === 'installing'}
+                        className="px-4 py-1.5 rounded-lg text-[12px] font-medium transition-colors disabled:opacity-50"
+                        style={{ background: 'var(--surface-3)', color: 'var(--text-2)', border: '1px solid var(--border)' }}
+                      >
+                        {updateStatus === 'checking' ? t('Checking…') : updateStatus === 'installing' ? t('Installing…') : t('Check for updates')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {activeSection === 'shortcuts' && (
                 <div className="flex flex-col gap-1">
                   {([
-                    { key: 'N', description: t('New task') },
+                    { key: 'C', description: t('New task') },
                     { key: 'V', description: t('Toggle view (Week / Today)') },
                     { key: 'B', description: t('Toggle sidebar') },
-                    { key: 'E', description: t('Toggle timebox') },
+                    { key: 'T', description: t('Toggle timebox') },
                     { key: ',', description: t('Open settings') },
                     { key: 'Esc', description: t('Close panel') },
                   ] as { key: string; description: string }[]).map(({ key, description }) => (

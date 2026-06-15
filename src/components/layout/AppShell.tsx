@@ -56,10 +56,10 @@ export function AppShell() {
 
       if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey) {
         const s = useTaskStore.getState();
-        if (e.key === 'n') { e.preventDefault(); window.dispatchEvent(new Event('cortex:new-task')); }
+        if (e.key === 'c') { e.preventDefault(); window.dispatchEvent(new Event('cortex:new-task')); }
         if (e.key === 'v') { e.preventDefault(); s.setView(s.currentView === 'main' ? 'today' : 'main'); }
         if (e.key === 'b') { e.preventDefault(); s.toggleBrainDump(); }
-        if (e.key === 'e') { e.preventDefault(); s.toggleTimebox(); }
+        if (e.key === 't') { e.preventDefault(); s.toggleTimebox(); }
         if (e.key === ',') { e.preventDefault(); window.dispatchEvent(new Event('cortex:open-settings')); }
       }
     }
