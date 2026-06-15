@@ -35,7 +35,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
         with:
           tagName: 'v__VERSION__'
           releaseName: 'Cortex v__VERSION__'
@@ -55,29 +54,31 @@ jobs:
           releaseDraft: false
           prerelease: false
 
-      - name: Upload updater manifest
+      - name: Sign and upload updater manifest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
           VERSION=$(python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['version'])")
-          SIG_FILE=$(find src-tauri/target -name "*.app.tar.gz.sig" 2>/dev/null | head -1)
+          TAR_GZ="src-tauri/target/release/bundle/macos/Cortex.app.tar.gz"
 
-          echo "Looking for .sig file..."
-          find src-tauri/target -name "*.sig" 2>/dev/null || echo "No .sig files found"
-
-          if [ -z "$SIG_FILE" ]; then
-            echo "Signature file not found, skipping updater manifest"
-            exit 0
+          if [ ! -f "$TAR_GZ" ]; then
+            echo "Bundle not found at $TAR_GZ"
+            exit 1
           fi
 
-          echo "Found sig: $SIG_FILE"
-          SIG=$(cat "$SIG_FILE")
+          # Sign manually using tauri signer
+          echo "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/cortex.key
+          pnpm tauri signer sign --private-key-path /tmp/cortex.key "$TAR_GZ"
+          rm /tmp/cortex.key
+
+          SIG=$(cat "${TAR_GZ}.sig")
           UPDATE_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/Cortex_aarch64.app.tar.gz"
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           python3 -c "
-          import json, sys
-          sig = open('${SIG_FILE}').read().strip()
+          import json
+          sig = open('${TAR_GZ}.sig').read().strip()
           data = {
             'version': '${VERSION}',
             'notes': '',
@@ -92,5 +93,4 @@ jobs:
           print(json.dumps(data, indent=2))
           " > latest.json
 
-          cat latest.json
           gh release upload "v${VERSION}" latest.json --clobber
