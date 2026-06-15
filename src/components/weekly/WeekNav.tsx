@@ -1,8 +1,16 @@
 import { format, addDays, isSameWeek } from 'date-fns';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
 import { useDateLocale } from '../../hooks/useDateLocale';
 import { SettingsButton } from '../layout/SettingsButton';
+
+function handleDragRegionMouseDown(e: React.MouseEvent) {
+  const target = e.target as HTMLElement;
+  if (!target.closest('button, input, a, [role="button"]')) {
+    getCurrentWindow().startDragging();
+  }
+}
 
 interface Props {
   onTodayClick?: () => void;
@@ -38,6 +46,7 @@ export function WeekNav({ onTodayClick }: Props) {
   return (
     <div
       data-tauri-drag-region
+      onMouseDown={handleDragRegionMouseDown}
       className="flex items-center gap-2 border-b flex-shrink-0"
       style={{
         height: 52,

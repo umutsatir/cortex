@@ -67,6 +67,7 @@ export function TaskDetailPanel() {
   const labels = useLabelStore((s) => s.labels);
   const timeFormat = useGeneralStore((s) => s.timeFormat);
   const language   = useGeneralStore((s) => s.language);
+  const dateFormat = useGeneralStore((s) => s.dateFormat);
   const t = useT();
   const task = tasks.find((t) => t.id === selectedTaskId) ?? null;
   const currentLabel = labels.find((l) => l.id === task?.label) ?? null;
@@ -192,13 +193,36 @@ export function TaskDetailPanel() {
               label={t('Due date')}
             >
               <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={task.due_date ?? ''}
-                  onChange={(e) => updateTask(task.id, { due_date: e.target.value || null })}
-                  className="text-[13px] bg-transparent outline-none cursor-pointer transition-colors"
-                  style={{ color: 'var(--text-2)', colorScheme: 'auto' }}
-                />
+                <div className="relative">
+                  <span
+                    className="text-[13px] cursor-pointer"
+                    style={{ color: task.due_date ? 'var(--text-2)' : 'var(--text-4)' }}
+                  >
+                    {task.due_date
+                      ? format(new Date(task.due_date + 'T00:00:00'), dateFormat)
+                      : t('Set date')}
+                  </span>
+                  <input
+                    type="date"
+                    value={task.due_date ?? ''}
+                    onChange={(e) => updateTask(task.id, { due_date: e.target.value || null })}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                    style={{ colorScheme: 'auto' }}
+                  />
+                </div>
+                {task.due_date && (
+                  <button
+                    onClick={() => updateTask(task.id, { due_date: null })}
+                    className="flex items-center justify-center w-4 h-4 rounded transition-colors"
+                    style={{ color: 'var(--text-5)' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-3)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-5)'; }}
+                  >
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                      <path d="M1 1l6 6M7 1L1 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                )}
                 {dueDiff !== null && (
                   <span
                     className="text-[11px]"

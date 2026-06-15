@@ -1,5 +1,6 @@
 import { useDroppable } from '@dnd-kit/core';
 import { AnimatePresence } from 'framer-motion';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
@@ -20,6 +21,12 @@ export function BrainDump() {
     >
       <div
         data-tauri-drag-region
+        onMouseDown={(e) => {
+          const target = e.target as HTMLElement;
+          if (!target.closest('button, input, a, [role="button"]')) {
+            getCurrentWindow().startDragging();
+          }
+        }}
         className="flex items-center border-b flex-shrink-0"
         style={{ height: 52, paddingLeft: 80, paddingRight: 16, borderColor: 'var(--border)' }}
       >

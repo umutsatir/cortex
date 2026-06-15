@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { format, isToday, parseISO } from 'date-fns';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
@@ -221,6 +222,12 @@ export function Timebox() {
       {/* Header */}
       <div
         data-tauri-drag-region
+        onMouseDown={(e) => {
+          const target = e.target as HTMLElement;
+          if (!target.closest('button, input, a, [role="button"]')) {
+            getCurrentWindow().startDragging();
+          }
+        }}
         className="flex items-center px-3 border-b flex-shrink-0"
         style={{ height: 52, borderColor: 'var(--border)' }}
       >

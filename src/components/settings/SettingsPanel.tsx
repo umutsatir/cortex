@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startOfWeek } from 'date-fns';
 import { useThemeStore, applyTheme, ACCENT_PRESETS, type Theme } from '../../store/themeStore';
-import { useGeneralStore, type Lang, type TimeFormat, type WeekStart } from '../../store/generalStore';
+import { useGeneralStore, type Lang, type TimeFormat, type WeekStart, type DateFormat } from '../../store/generalStore';
 import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
 import type { AppView } from '../../types';
@@ -113,8 +113,8 @@ interface Props {
 
 export function SettingsPanel({ onClose }: Props) {
   const { theme, accent, setTheme, setAccent } = useThemeStore();
-  const { language, weekStartsOn, defaultView, timeFormat,
-          setLanguage, setDefaultView, setTimeFormat } = useGeneralStore();
+  const { language, weekStartsOn, defaultView, timeFormat, dateFormat,
+          setLanguage, setDefaultView, setTimeFormat, setDateFormat } = useGeneralStore();
   const setWeekStartsOn = useGeneralStore((s) => s.setWeekStartsOn);
   const [activeSection, setActiveSection] = useState('general');
   const t = useT();
@@ -313,6 +313,18 @@ export function SettingsPanel({ onClose }: Props) {
                       value={timeFormat}
                       onChange={setTimeFormat}
                       options={[{ value: '24h', label: '24h' }, { value: '12h', label: '12h' }]}
+                    />
+                  </SettingRow>
+
+                  <SettingRow label={t('Date format')}>
+                    <SegmentedControl<DateFormat>
+                      value={dateFormat}
+                      onChange={setDateFormat}
+                      options={[
+                        { value: 'dd/MM/yyyy', label: 'DD/MM/YYYY' },
+                        { value: 'MM/dd/yyyy', label: 'MM/DD/YYYY' },
+                        { value: 'yyyy-MM-dd', label: 'YYYY-MM-DD' },
+                      ]}
                     />
                   </SettingRow>
                 </div>
