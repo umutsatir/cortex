@@ -19,6 +19,7 @@ import { TodayFocus } from '../today/TodayFocus';
 import { TaskDetailPanel } from '../brain-dump/TaskDetailPanel';
 import { useTaskStore } from '../../store/taskStore';
 import { useDragDrop } from '../../hooks/useDragDrop';
+import { UpdateBanner } from '../updater/UpdateBanner';
 import type { Task } from '../../types';
 
 export function AppShell() {
@@ -135,6 +136,7 @@ export function AppShell() {
       </div>
 
       <TaskDetailPanel />
+      <UpdateBanner />
 
       <DragOverlay>
         {activeTask && (

@@ -9,6 +9,8 @@
     "opener:default",
     "sql:allow-execute",
     "sql:allow-load",
-    "sql:allow-select"
+    "sql:allow-select",
+    "updater:default",
+    "core:process:allow-restart"
   ]
 }

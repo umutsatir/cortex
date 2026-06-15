@@ -34,6 +34,8 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: 'v__VERSION__'
           releaseName: 'Cortex v__VERSION__'
@@ -41,5 +43,14 @@ jobs:
             ## Cortex v__VERSION__
 
             Download the `.dmg` file below to install on macOS.
+
+            ---
+
+            > **macOS Gatekeeper Warning**
+            > If you see *"Cortex is damaged and can't be opened"*, run the following command in Terminal after moving the app to your Applications folder:
+            > ```
+            > xattr -dr com.apple.quarantine /Applications/Cortex.app
+            > ```
+            > This happens because the app is not yet signed with an Apple Developer certificate. The app is safe to use.
           releaseDraft: false
           prerelease: false
