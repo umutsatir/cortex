@@ -60,26 +60,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['version'])")
-          SIG_FILE="src-tauri/target/release/bundle/macos/Cortex.app.tar.gz.sig"
+          SIG_FILE=$(find src-tauri/target -name "*.app.tar.gz.sig" 2>/dev/null | head -1)
 
-          if [ ! -f "$SIG_FILE" ]; then
+          echo "Looking for .sig file..."
+          find src-tauri/target -name "*.sig" 2>/dev/null || echo "No .sig files found"
+
+          if [ -z "$SIG_FILE" ]; then
             echo "Signature file not found, skipping updater manifest"
             exit 0
           fi
 
+          echo "Found sig: $SIG_FILE"
           SIG=$(cat "$SIG_FILE")
           UPDATE_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/Cortex_aarch64.app.tar.gz"
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           python3 -c "
-          import json
+          import json, sys
+          sig = open('${SIG_FILE}').read().strip()
           data = {
             'version': '${VERSION}',
             'notes': '',
             'pub_date': '${PUB_DATE}',
             'platforms': {
               'darwin-aarch64': {
-                'signature': '''${SIG}''',
+                'signature': sig,
                 'url': '${UPDATE_URL}'
               }
             }
@@ -87,4 +92,5 @@ jobs:
           print(json.dumps(data, indent=2))
           " > latest.json
 
+          cat latest.json
           gh release upload "v${VERSION}" latest.json --clobber
