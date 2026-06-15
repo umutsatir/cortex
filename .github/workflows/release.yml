@@ -67,10 +67,7 @@ jobs:
             exit 1
           fi
 
-          # Sign manually using tauri signer
-          echo "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/cortex.key
-          pnpm tauri signer sign --private-key-path /tmp/cortex.key "$TAR_GZ"
-          rm /tmp/cortex.key
+          pnpm tauri signer sign "$TAR_GZ"
 
           SIG=$(cat "${TAR_GZ}.sig")
           UPDATE_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/Cortex_aarch64.app.tar.gz"
