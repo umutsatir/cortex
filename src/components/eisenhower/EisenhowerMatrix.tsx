@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
@@ -9,9 +8,8 @@ import type { EisenhowerQuadrant } from '../../types';
 const QUADRANTS: EisenhowerQuadrant[] = ['do_first', 'schedule', 'delegate', 'eliminate'];
 
 export function EisenhowerMatrix() {
-  const today = format(new Date(), 'yyyy-MM-dd');
   const tasks = useTaskStore(useShallow((s) =>
-    s.tasks.filter((t) => t.scheduled_date === today && t.eisenhower_quadrant)
+    s.tasks.filter((t) => t.scheduled_date === s.today && t.eisenhower_quadrant)
   ));
   const currentView = useTaskStore((s) => s.currentView);
   const setView     = useTaskStore((s) => s.setView);

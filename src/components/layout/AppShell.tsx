@@ -39,6 +39,17 @@ export function AppShell() {
   useEffect(() => { init(); }, [init]);
 
   useEffect(() => {
+    const refresh = () => useTaskStore.getState().refreshDay();
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refresh();
+    });
+    return () => {
+      window.removeEventListener('focus', refresh);
+    };
+  }, []);
+
+  useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.metaKey && e.key === 't') {
         e.preventDefault();

@@ -10,9 +10,9 @@ import { TaskItem } from '../brain-dump/TaskItem';
 import { TaskInput } from '../brain-dump/TaskInput';
 
 export function TodayTaskList() {
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = useTaskStore((s) => s.today);
   const tasks = useTaskStore(useShallow((s) =>
-    s.tasks.filter((t) => t.scheduled_date === today)
+    s.tasks.filter((t) => t.scheduled_date === s.today)
   ));
 
   const { setNodeRef, isOver } = useDroppable({ id: `day__${today}` });
@@ -38,7 +38,7 @@ export function TodayTaskList() {
         style={{ height: 52, paddingLeft: 80, paddingRight: 16, borderColor: 'var(--border)' }}
       >
         <div className="text-[13px] font-semibold" style={{ color: 'var(--text-1)' }}>
-          {format(new Date(), 'EEEE, MMM d', { locale })}
+          {format(new Date(today + 'T00:00:00'), 'EEEE, MMM d', { locale })}
         </div>
         {tasks.length > 0 && (
           <div className="text-[11px]" style={{ color: 'var(--text-4)' }}>

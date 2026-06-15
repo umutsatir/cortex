@@ -10,6 +10,7 @@ interface TaskStore {
   tasks: Task[];
   currentView: AppView;
   currentWeekStart: Date;
+  today: string;
   initialized: boolean;
   selectedTaskId: string | null;
   timeboxDate: string;
@@ -17,6 +18,7 @@ interface TaskStore {
   showTimebox: boolean;
 
   init: () => Promise<void>;
+  refreshDay: () => void;
   addTask: (title: string, extras?: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at'>>) => Promise<Task>;
   updateTask: (id: string, updates: TaskUpdate) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -34,6 +36,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
   currentView: useGeneralStore.getState().defaultView,
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: useGeneralStore.getState().weekStartsOn }),
+  today: format(new Date(), 'yyyy-MM-dd'),
   initialized: false,
   selectedTaskId: null,
   timeboxDate: format(new Date(), 'yyyy-MM-dd'),
@@ -132,4 +135,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   toggleBrainDump: () => set((s) => ({ showBrainDump: !s.showBrainDump })),
   toggleTimebox:   () => set((s) => ({ showTimebox:   !s.showTimebox   })),
+
+  refreshDay: () => {
+    const newToday = format(new Date(), 'yyyy-MM-dd');
+    set((s) => ({
+      today: newToday,
+      // only snap timeboxDate to today if it was already on today before
+      timeboxDate: s.timeboxDate === s.today ? newToday : s.timeboxDate,
+      // snap week to current week only if user hasn't navigated away
+      currentWeekStart: startOfWeek(new Date(), { weekStartsOn: ws() }),
+    }));
+  },
 }));
