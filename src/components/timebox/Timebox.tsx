@@ -222,9 +222,10 @@ export function Timebox() {
       {/* Header */}
       <div
         data-tauri-drag-region
-        onMouseDown={(e) => {
+        onPointerDown={(e) => {
           const target = e.target as HTMLElement;
           if (!target.closest('button, input, a, [role="button"]')) {
+            e.stopPropagation();
             getCurrentWindow().startDragging();
           }
         }}

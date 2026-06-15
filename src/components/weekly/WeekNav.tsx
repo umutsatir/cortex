@@ -5,9 +5,10 @@ import { useT } from '../../hooks/useT';
 import { useDateLocale } from '../../hooks/useDateLocale';
 import { SettingsButton } from '../layout/SettingsButton';
 
-function handleDragRegionMouseDown(e: React.MouseEvent) {
+function handleDragRegionPointerDown(e: React.PointerEvent) {
   const target = e.target as HTMLElement;
   if (!target.closest('button, input, a, [role="button"]')) {
+    e.stopPropagation(); // prevent dnd-kit from capturing this pointer event
     getCurrentWindow().startDragging();
   }
 }
@@ -46,7 +47,7 @@ export function WeekNav({ onTodayClick }: Props) {
   return (
     <div
       data-tauri-drag-region
-      onMouseDown={handleDragRegionMouseDown}
+      onPointerDown={handleDragRegionPointerDown}
       className="flex items-center gap-2 border-b flex-shrink-0"
       style={{
         height: 52,
