@@ -11,6 +11,6 @@
     "sql:allow-load",
     "sql:allow-select",
     "updater:default",
-    "core:process:allow-restart"
+    "process:allow-restart"
   ]
 }
