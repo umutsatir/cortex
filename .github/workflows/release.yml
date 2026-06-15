@@ -35,10 +35,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: 'v${{ github.run_number }}'
-          releaseName: 'Cortex v${{ github.run_number }}'
+          tagName: 'v__VERSION__'
+          releaseName: 'Cortex v__VERSION__'
           releaseBody: |
-            ## Cortex v${{ github.run_number }}
+            ## Cortex v__VERSION__
 
             Download the `.dmg` file below to install on macOS.
           releaseDraft: false
