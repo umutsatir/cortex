@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useLabelStore } from '../../store/labelStore';
 import { useGeneralStore } from '../../store/generalStore';
+import { useIntegrationStore } from '../../store/integrationStore';
 import { useIsDark } from '../../hooks/useIsDark';
 import { useT } from '../../hooks/useT';
 import { useDateLocale } from '../../hooks/useDateLocale';
@@ -196,6 +197,14 @@ export function Timebox() {
     s.tasks.filter((t) => t.timebox_start && t.scheduled_date === timeboxDate)
   ));
   const labels = useLabelStore((s) => s.labels);
+  const { eventsCache, calendars: calList, fetchEventsForDate, connected: calConnected } = useIntegrationStore(
+    useShallow((s) => ({ eventsCache: s.eventsCache, calendars: s.calendars, fetchEventsForDate: s.fetchEventsForDate, connected: s.connected }))
+  );
+  const calEvents = calConnected ? (eventsCache[timeboxDate] ?? []) : [];
+
+  useEffect(() => {
+    if (calConnected) fetchEventsForDate(timeboxDate);
+  }, [timeboxDate, calConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isDark = useIsDark();
   const t = useT();
@@ -334,6 +343,40 @@ export function Timebox() {
               <div className="flex-1 h-px" style={{ background: '#EF4444' }} />
             </div>
           )}
+
+          {calEvents.map((ev) => {
+            const top = timeToOffset(ev.startTime);
+            const startMin = (() => { const [h, m] = ev.startTime.split(':').map(Number); return h * 60 + m; })();
+            const endMin   = (() => { const [h, m] = ev.endTime.split(':').map(Number); return h * 60 + m; })();
+            const height = Math.max(((endMin - startMin) / 60) * HOUR_PX, 15);
+            // Find the calendar this event belongs to by matching calHref
+            const cal = calList.find((c) => ev.calHref.includes(c.id) || c.href.includes(ev.calHref));
+            const color = cal?.color ?? '#6366f1';
+            return (
+              <div
+                key={ev.id}
+                className="absolute pointer-events-none z-[2] rounded-md px-2 py-1 overflow-hidden"
+                style={{
+                  top,
+                  left: LABEL_W + 4,
+                  right: 4,
+                  height,
+                  background: `${color}18`,
+                  border: `1px solid ${color}40`,
+                  borderLeft: `3px solid ${color}bb`,
+                }}
+              >
+                <div className="text-[11px] font-medium leading-tight truncate" style={{ color }}>
+                  {ev.title}
+                </div>
+                {height > 28 && (
+                  <div className="text-[10px] leading-none mt-0.5" style={{ color, opacity: 0.7 }}>
+                    {ev.startTime} – {ev.endTime}
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {layout.map(({ task, col, totalCols }) => {
             const colW = Math.floor(blockAreaW / totalCols);

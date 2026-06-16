@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { createPortal } from 'react-dom';
@@ -7,8 +7,99 @@ import { startOfWeek } from 'date-fns';
 import { useThemeStore, applyTheme, ACCENT_PRESETS, type Theme } from '../../store/themeStore';
 import { useGeneralStore, type Lang, type TimeFormat, type WeekStart, type DateFormat } from '../../store/generalStore';
 import { useTaskStore } from '../../store/taskStore';
+import { useIntegrationStore } from '../../store/integrationStore';
 import { useT } from '../../hooks/useT';
 import type { AppView } from '../../types';
+
+const SWATCH_COLORS = [
+  '#6366f1','#3b82f6','#0ea5e9','#10b981','#84cc16',
+  '#f59e0b','#ef4444','#ec4899','#8b5cf6','#14b8a6',
+  '#f97316','#a2845e','#63da38','#cc73e1','#34aadc',
+];
+
+function CalendarColorPicker({ color, onChange }: { color: string; onChange: (c: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const swatchRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  function openPicker() {
+    if (!swatchRef.current) return;
+    const rect = swatchRef.current.getBoundingClientRect();
+    const popW = 152;
+    const popH = 130; // approx height
+    const left = Math.min(rect.left, window.innerWidth - popW - 8);
+    const top = rect.bottom + 6 + popH > window.innerHeight
+      ? rect.top - popH - 6
+      : rect.bottom + 6;
+    setPos({ top, left: Math.max(8, left) });
+    setOpen(true);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node) &&
+          swatchRef.current && !swatchRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={swatchRef}
+        onClick={openPicker}
+        className="w-4 h-4 rounded-full border flex-shrink-0"
+        style={{ background: color, borderColor: 'rgba(0,0,0,0.15)' }}
+        title="Change color"
+      />
+      {open && createPortal(
+        <div
+          ref={popoverRef}
+          className="fixed z-[200] rounded-xl p-2 shadow-xl"
+          style={{
+            top: pos.top,
+            left: pos.left,
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            width: 152,
+          }}
+        >
+          <div className="grid grid-cols-5 gap-1.5">
+            {SWATCH_COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => { onChange(c); setOpen(false); }}
+                className="w-6 h-6 rounded-full transition-transform hover:scale-110"
+                style={{
+                  background: c,
+                  boxShadow: color === c ? `0 0 0 2px var(--surface), 0 0 0 3.5px ${c}` : 'none',
+                }}
+              />
+            ))}
+          </div>
+          {/* Custom hex input */}
+          <div className="mt-2 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full flex-shrink-0 border" style={{ background: color, borderColor: 'rgba(0,0,0,0.15)' }} />
+            <input
+              type="text"
+              value={color}
+              maxLength={7}
+              onChange={(e) => { if (/^#[0-9a-fA-F]{0,6}$/.test(e.target.value)) onChange(e.target.value); }}
+              className="flex-1 text-[11px] font-mono rounded px-1.5 py-1 outline-none"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-2)' }}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
 
 const THEME_OPTIONS: { value: Theme; label: string; icon: React.ReactNode }[] = [
   {
@@ -90,6 +181,17 @@ const SECTIONS: SectionDef[] = [
       </svg>
     ),
   },
+  {
+    id: 'integrations',
+    labelKey: 'Integrations',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="4" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+        <circle cx="10" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M6.5 7h1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ];
 
 function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -143,6 +245,9 @@ export function SettingsPanel({ onClose }: Props) {
   const [activeSection, setActiveSection] = useState('general');
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'none' | 'installing'>('idle');
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
+  const { connected, email: savedEmail, calendars, disabledIds, loading: calLoading, error: calError, connect, disconnect, toggleCalendar, setCalendarColor } = useIntegrationStore();
+  const [calEmail, setCalEmail] = useState('');
+  const [calPassword, setCalPassword] = useState('');
   const t = useT();
 
   const checkForUpdate = useCallback(async () => {
@@ -388,6 +493,111 @@ export function SettingsPanel({ onClose }: Props) {
                   <p className="text-[11px] mt-3" style={{ color: 'var(--text-4)' }}>
                     {t('Shortcuts work when no input is focused.')}
                   </p>
+                </div>
+              )}
+
+              {activeSection === 'integrations' && (
+                <div className="flex flex-col gap-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-4)' }}>
+                    iCloud Calendar
+                  </p>
+
+                  {connected ? (
+                    <>
+                      <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                        <div>
+                          <div className="text-[13px] font-medium" style={{ color: 'var(--text-1)' }}>{savedEmail}</div>
+                          <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-4)' }}>{t('Connected — events shown in Timebox')}</div>
+                        </div>
+                        <button
+                          onClick={disconnect}
+                          className="px-3 py-1.5 rounded-lg text-[12px] font-medium"
+                          style={{ background: 'var(--surface-3)', color: 'var(--text-3)', border: '1px solid var(--border)' }}
+                        >
+                          {t('Disconnect')}
+                        </button>
+                      </div>
+
+                      {calendars.length > 0 && (
+                        <div className="flex flex-col">
+                          <p className="text-[11px] mb-2" style={{ color: 'var(--text-4)' }}>{t('Show calendars')}</p>
+                          {calendars.map((cal) => {
+                            const enabled = !disabledIds.includes(cal.id);
+                            return (
+                              <div
+                                key={cal.id}
+                                className="flex items-center gap-2 py-2 border-b last:border-b-0"
+                                style={{ borderColor: 'var(--border-subtle)' }}
+                              >
+                                <CalendarColorPicker
+                                  color={cal.color}
+                                  onChange={(c) => setCalendarColor(cal.id, c)}
+                                />
+
+                                <span className="text-[13px] flex-1 min-w-0 truncate" style={{ color: 'var(--text-2)' }}>
+                                  {cal.name}
+                                </span>
+
+                                <button
+                                  onClick={() => toggleCalendar(cal.id)}
+                                  className="w-9 h-5 rounded-full transition-colors flex-shrink-0 relative"
+                                  style={{ background: enabled ? 'var(--accent)' : 'var(--surface-3)' }}
+                                >
+                                  <span
+                                    className="absolute top-0.5 w-4 h-4 rounded-full transition-all"
+                                    style={{ background: 'white', left: enabled ? '18px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+                                  />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px]" style={{ color: 'var(--text-3)' }}>Apple ID</label>
+                        <input
+                          type="email"
+                          value={calEmail}
+                          onChange={(e) => setCalEmail(e.target.value)}
+                          placeholder="you@icloud.com"
+                          className="rounded-lg px-3 py-2 text-[13px] outline-none"
+                          style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-1)' }}
+                          onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; }}
+                          onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px]" style={{ color: 'var(--text-3)' }}>App-Specific Password</label>
+                        <input
+                          type="password"
+                          value={calPassword}
+                          onChange={(e) => setCalPassword(e.target.value)}
+                          placeholder="xxxx-xxxx-xxxx-xxxx"
+                          className="rounded-lg px-3 py-2 text-[13px] outline-none"
+                          style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-1)' }}
+                          onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; }}
+                          onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
+                        />
+                      </div>
+                      <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>
+                        Generate an app-specific password at <span style={{ color: 'var(--accent)' }}>appleid.apple.com</span> → Sign-In and Security → App-Specific Passwords.
+                      </p>
+                      {calError && (
+                        <p className="text-[11px]" style={{ color: '#ef4444' }}>{calError}</p>
+                      )}
+                      <button
+                        onClick={() => connect(calEmail, calPassword)}
+                        disabled={calLoading || !calEmail || !calPassword}
+                        className="px-4 py-2 rounded-lg text-[13px] font-medium disabled:opacity-50 transition-colors"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                      >
+                        {calLoading ? t('Connecting…') : t('Connect')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
