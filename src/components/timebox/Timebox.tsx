@@ -162,8 +162,8 @@ function QuarterSlot({ timeStr, isHalf, isHour }: { timeStr: string; isHalf: boo
         borderBottom: isHour
           ? '1px solid var(--border-subtle)'
           : isHalf
-          ? '1px solid rgba(128,128,128,0.18)'
-          : '1px dashed rgba(128,128,128,0.07)',
+          ? '1px dashed rgba(128,128,128,0.2)'
+          : '1px dashed rgba(128,128,128,0.08)',
       }}
     />
   );

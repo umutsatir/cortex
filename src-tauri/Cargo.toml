@@ -1,6 +1,6 @@
 [package]
 name = "cortex"
-version = "0.1.9"
+version = "0.1.10"
 description = "Cortex - Daily Planning App"
 authors = ["umut"]
 edition = "2021"
