@@ -13,6 +13,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -30,6 +32,42 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION=$(python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['version'])")
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty="- %s" "${PREV_TAG}..HEAD" --no-merges \
+              | grep -v -E "^- (chore: bump|fix: bump|chore: release)" || true)
+          else
+            COMMITS=$(git log --pretty="- %s" --no-merges | head -20 || true)
+          fi
+          {
+            echo "body<<RELEASE_EOF"
+            echo "## What's new in v${VERSION}"
+            echo ""
+            if [ -n "$COMMITS" ]; then
+              echo "$COMMITS"
+            else
+              echo "- Bug fixes and improvements"
+            fi
+            echo ""
+            echo "---"
+            echo ""
+            echo "Download the \`.dmg\` file below to install on macOS."
+            echo ""
+            echo "---"
+            echo ""
+            echo "> **macOS Gatekeeper Warning**"
+            echo "> If you see *\"Cortex is damaged and can't be opened\"*, run the following command in Terminal after moving the app to your Applications folder:"
+            echo "> \`\`\`"
+            echo "> xattr -dr com.apple.quarantine /Applications/Cortex.app"
+            echo "> \`\`\`"
+            echo "> This happens because the app is not yet signed with an Apple Developer certificate. The app is safe to use."
+            echo "RELEASE_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -38,19 +76,7 @@ jobs:
         with:
           tagName: 'v__VERSION__'
           releaseName: 'Cortex v__VERSION__'
-          releaseBody: |
-            ## Cortex v__VERSION__
-
-            Download the `.dmg` file below to install on macOS.
-
-            ---
-
-            > **macOS Gatekeeper Warning**
-            > If you see *"Cortex is damaged and can't be opened"*, run the following command in Terminal after moving the app to your Applications folder:
-            > ```
-            > xattr -dr com.apple.quarantine /Applications/Cortex.app
-            > ```
-            > This happens because the app is not yet signed with an Apple Developer certificate. The app is safe to use.
+          releaseBody: ${{ steps.changelog.outputs.body }}
           releaseDraft: false
           prerelease: false
 
@@ -69,7 +95,6 @@ jobs:
 
           pnpm tauri signer sign --password '' "$TAR_GZ"
 
-          SIG=$(cat "${TAR_GZ}.sig")
           UPDATE_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/Cortex_aarch64.app.tar.gz"
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 

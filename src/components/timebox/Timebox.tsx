@@ -152,17 +152,38 @@ function DropPreview() {
   );
 }
 
-function HourRow({ hour, timeFormat, lang }: { hour: number; timeFormat: '12h' | '24h'; lang: string }) {
-  const timeStr = `${String(hour).padStart(2, '0')}:00`;
+function QuarterSlot({ timeStr, isHalf, isHour }: { timeStr: string; isHalf: boolean; isHour: boolean }) {
   const { setNodeRef } = useDroppable({ id: `timebox__${timeStr}` });
   return (
+    <div
+      ref={setNodeRef}
+      style={{
+        height: `${HOUR_PX / 4}px`,
+        borderBottom: isHour
+          ? '1px solid var(--border-subtle)'
+          : isHalf
+          ? '1px solid rgba(128,128,128,0.18)'
+          : '1px dashed rgba(128,128,128,0.07)',
+      }}
+    />
+  );
+}
+
+function HourRow({ hour, timeFormat, lang }: { hour: number; timeFormat: '12h' | '24h'; lang: string }) {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
     <div className="flex" style={{ height: `${HOUR_PX}px` }}>
-      <div className="flex-shrink-0 flex items-start pt-1" style={{ width: `${LABEL_W}px` }}>
-        <span className="text-[11px] pl-3" style={{ color: 'var(--text-4)' }}>
+      <div className="flex-shrink-0 relative" style={{ width: `${LABEL_W}px` }}>
+        <span className="text-[11px] pl-3 absolute top-1 leading-none" style={{ color: 'var(--text-4)' }}>
           {formatHour(hour, timeFormat, lang)}
         </span>
       </div>
-      <div ref={setNodeRef} className="flex-1 border-b" style={{ borderColor: 'var(--border-subtle)' }} />
+      <div className="flex-1 flex flex-col">
+        <QuarterSlot timeStr={`${pad(hour)}:00`} isHalf={false} isHour={false} />
+        <QuarterSlot timeStr={`${pad(hour)}:15`} isHalf={false} isHour={false} />
+        <QuarterSlot timeStr={`${pad(hour)}:30`} isHalf={true}  isHour={false} />
+        <QuarterSlot timeStr={`${pad(hour)}:45`} isHalf={false} isHour={true}  />
+      </div>
     </div>
   );
 }

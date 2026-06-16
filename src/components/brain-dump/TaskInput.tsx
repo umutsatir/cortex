@@ -47,6 +47,7 @@ export function TaskInput({ onAdd, placeholder = 'Add task…', scheduledDate = 
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); inputRef.current?.blur(); } }}
           placeholder={placeholder}
           className="flex-1 bg-transparent text-[13px] outline-none min-w-0"
           style={{ color: 'var(--text-1)' }}
