@@ -1,17 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { format, isToday, parseISO } from 'date-fns';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useLabelStore } from '../../store/labelStore';
 import { useGeneralStore } from '../../store/generalStore';
 import { useIntegrationStore } from '../../store/integrationStore';
-import { useIsDark } from '../../hooks/useIsDark';
 import { useT } from '../../hooks/useT';
 import { useDateLocale } from '../../hooks/useDateLocale';
+import { useDayEvents, type ColoredDayEvent } from '../../hooks/useDayEvents';
+import {
+  END_HOUR, HOUR_PX, LABEL_W, START_HOUR, layoutColumns, minutesToOffset, minutesToTime,
+  timeToMinutes, timeToOffset, type Span,
+} from '../../lib/time';
 import { TimeboxBlock } from './TimeboxBlock';
+import { Chevron, IconButton, PillButton, Toolbar } from '../ui/Toolbar';
 import type { Task } from '../../types';
+
+type TimeboxItem = { kind: 'task'; task: Task } | { kind: 'event'; event: ColoredDayEvent };
 
 function ampm(h: number, lang: string) {
   if (lang === 'tr') return h < 12 ? 'ÖÖ' : 'ÖS';
@@ -34,83 +40,25 @@ export function formatTimeStr(timeStr: string, fmt: '12h' | '24h', lang = 'en'):
   return m === 0 ? `${h12} ${label}` : `${h12}:${String(m).padStart(2, '0')} ${label}`;
 }
 
-export const START_HOUR = 6;
-const END_HOUR = 24;
-export const HOUR_PX = 60;
-export const LABEL_W = 48;
-const BLOCK_GAP = 2;
+const BLOCK_GAP = 4;
 
-export const BLOCK_COLORS = [
-  { bg: '#EEF2FF', border: '#C7D2FE', text: '#4338CA' },
-  { bg: '#FFF1F2', border: '#FECDD3', text: '#BE123C' },
-  { bg: '#ECFDF5', border: '#A7F3D0', text: '#065F46' },
-  { bg: '#FFFBEB', border: '#FDE68A', text: '#92400E' },
-  { bg: '#F0F9FF', border: '#BAE6FD', text: '#0369A1' },
-  { bg: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6' },
-  { bg: '#FFF7ED', border: '#FED7AA', text: '#9A3412' },
-  { bg: '#F0FDFA', border: '#99F6E4', text: '#134E4A' },
-];
+export interface BlockColor { bg: string; border: string; text: string; meta: string }
 
-const BLOCK_COLORS_DARK = [
-  { bg: '#1E1B4B', border: '#3730A3', text: '#A5B4FC' },
-  { bg: '#4C0519', border: '#9F1239', text: '#FDA4AF' },
-  { bg: '#022C22', border: '#065F46', text: '#6EE7B7' },
-  { bg: '#451A03', border: '#92400E', text: '#FCD34D' },
-  { bg: '#082F49', border: '#075985', text: '#7DD3FC' },
-  { bg: '#2E1065', border: '#5B21B6', text: '#C4B5FD' },
-  { bg: '#431407', border: '#9A3412', text: '#FDBA74' },
-  { bg: '#042F2E', border: '#134E4A', text: '#5EEAD4' },
-];
+// Design system: task blocks are accent or neutral; a label's own color is the only exception.
+const ACCENT_BLOCK: BlockColor = {
+  bg: 'var(--accent-soft)', border: 'var(--accent-line)', text: 'var(--ink)', meta: 'var(--accent-hover)',
+};
 
-function hashId(id: string): number {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = Math.imul(31, h) + id.charCodeAt(i) | 0;
-  return Math.abs(h);
-}
-
-export function getBlockColor(taskId: string, labelColor?: string | null, isDark = false) {
-  if (labelColor) return { bg: labelColor + '22', border: labelColor + '55', text: labelColor };
-  const palette = isDark ? BLOCK_COLORS_DARK : BLOCK_COLORS;
-  return palette[hashId(taskId) % palette.length];
-}
-
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
-
-export function timeToOffset(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return ((h * 60 + m - START_HOUR * 60) / 60) * HOUR_PX;
-}
-
-interface LayoutTask { task: Task; col: number; totalCols: number }
-
-function layoutTimebox(tasks: Task[]): LayoutTask[] {
-  if (tasks.length === 0) return [];
-  const sorted = [...tasks].sort((a, b) =>
-    timeToMinutes(a.timebox_start!) - timeToMinutes(b.timebox_start!)
-  );
-  const colEnds: number[] = [];
-  const cols = sorted.map((task) => {
-    const start = timeToMinutes(task.timebox_start!);
-    const end = timeToMinutes(task.timebox_end!);
-    let col = colEnds.findIndex((e) => e <= start);
-    if (col === -1) col = colEnds.length;
-    colEnds[col] = end;
-    return col;
-  });
-  return sorted.map((task, i) => {
-    const s = timeToMinutes(task.timebox_start!);
-    const e = timeToMinutes(task.timebox_end!);
-    let maxCol = cols[i];
-    for (let j = 0; j < sorted.length; j++) {
-      const sj = timeToMinutes(sorted[j].timebox_start!);
-      const ej = timeToMinutes(sorted[j].timebox_end!);
-      if (sj < e && ej > s) maxCol = Math.max(maxCol, cols[j]);
-    }
-    return { task, col: cols[i], totalCols: maxCol + 1 };
-  });
+export function getBlockColor(labelColor?: string | null): BlockColor {
+  if (labelColor) {
+    return {
+      bg: `color-mix(in srgb, ${labelColor} 14%, var(--surface))`,
+      border: `color-mix(in srgb, ${labelColor} 45%, var(--surface))`,
+      text: 'var(--ink)',
+      meta: `color-mix(in srgb, ${labelColor} 75%, var(--ink))`,
+    };
+  }
+  return ACCENT_BLOCK;
 }
 
 function DropPreview() {
@@ -139,21 +87,21 @@ function DropPreview() {
 
   return (
     <div
-      className="absolute pointer-events-none z-20 rounded-lg"
+      className="absolute pointer-events-none z-20"
       style={{
         top,
         left: LABEL_W + 4,
         right: 4,
         height,
-        background: 'var(--accent-bg)',
+        borderRadius: 'var(--radius-sm)',
+        background: 'var(--accent-soft)',
         border: '1.5px dashed var(--accent)',
-        opacity: 0.65,
       }}
     />
   );
 }
 
-function QuarterSlot({ timeStr, isHalf, isHour }: { timeStr: string; isHalf: boolean; isHour: boolean }) {
+function QuarterSlot({ timeStr, isHour }: { timeStr: string; isHour: boolean }) {
   const { setNodeRef } = useDroppable({ id: `timebox__${timeStr}` });
   return (
     <div
@@ -161,10 +109,8 @@ function QuarterSlot({ timeStr, isHalf, isHour }: { timeStr: string; isHalf: boo
       style={{
         height: `${HOUR_PX / 4}px`,
         borderBottom: isHour
-          ? '1px solid var(--border-subtle)'
-          : isHalf
-          ? '1px dashed rgba(128,128,128,0.2)'
-          : '1px dashed rgba(128,128,128,0.08)',
+          ? '1px solid var(--border)'
+          : '1px solid transparent',
       }}
     />
   );
@@ -175,15 +121,15 @@ function HourRow({ hour, timeFormat, lang }: { hour: number; timeFormat: '12h' |
   return (
     <div className="flex" style={{ height: `${HOUR_PX}px` }}>
       <div className="flex-shrink-0 relative" style={{ width: `${LABEL_W}px` }}>
-        <span className="text-[11px] pl-3 absolute top-1 leading-none" style={{ color: 'var(--text-4)' }}>
+        <span className={`text-[11px] font-medium tabular-nums pl-2.5 absolute leading-[14px] ${hour === START_HOUR ? 'top-0.5' : '-top-[7px]'}`} style={{ color: 'var(--ink-secondary)' }}>
           {formatHour(hour, timeFormat, lang)}
         </span>
       </div>
       <div className="flex-1 flex flex-col">
-        <QuarterSlot timeStr={`${pad(hour)}:00`} isHalf={false} isHour={false} />
-        <QuarterSlot timeStr={`${pad(hour)}:15`} isHalf={false} isHour={false} />
-        <QuarterSlot timeStr={`${pad(hour)}:30`} isHalf={true}  isHour={false} />
-        <QuarterSlot timeStr={`${pad(hour)}:45`} isHalf={false} isHour={true}  />
+        <QuarterSlot timeStr={`${pad(hour)}:00`} isHour={false} />
+        <QuarterSlot timeStr={`${pad(hour)}:15`} isHour={false} />
+        <QuarterSlot timeStr={`${pad(hour)}:30`} isHour={false} />
+        <QuarterSlot timeStr={`${pad(hour)}:45`} isHour={true}  />
       </div>
     </div>
   );
@@ -197,22 +143,24 @@ export function Timebox() {
     s.tasks.filter((t) => t.timebox_start && t.scheduled_date === timeboxDate)
   ));
   const labels = useLabelStore((s) => s.labels);
-  const { eventsCache, calendars: calList, fetchEventsForDate, connected: calConnected } = useIntegrationStore(
-    useShallow((s) => ({ eventsCache: s.eventsCache, calendars: s.calendars, fetchEventsForDate: s.fetchEventsForDate, connected: s.connected }))
+  const dayEvents = useDayEvents(timeboxDate);
+  const allDayEvents = dayEvents.filter((e) => e.allDay);
+  const { hasAccounts, calLoading, calIssue, ensureEvents } = useIntegrationStore(
+    useShallow((s) => ({
+      hasAccounts: s.accounts.length > 0,
+      calLoading: s.loading > 0,
+      calIssue: s.accounts.find((a) => a.status !== 'ok') ?? null,
+      ensureEvents: s.ensureEvents,
+    }))
   );
-  const calEvents = calConnected ? (eventsCache[timeboxDate] ?? []) : [];
 
-  useEffect(() => {
-    if (calConnected) fetchEventsForDate(timeboxDate);
-  }, [timeboxDate, calConnected]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const isDark = useIsDark();
   const t = useT();
   const locale = useDateLocale();
   const timeFormat = useGeneralStore((s) => s.timeFormat);
   const language  = useGeneralStore((s) => s.language);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [nowOffset, setNowOffset] = useState<number | null>(null);
+  const nowMinutes = nowOffset === null ? 0 : Math.round((nowOffset / HOUR_PX) * 60) + START_HOUR * 60;
 
   function calcNowOffset() {
     if (!isToday(parseISO(timeboxDate))) { setNowOffset(null); return; }
@@ -236,92 +184,93 @@ export function Timebox() {
 
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
   const totalH = (END_HOUR - START_HOUR) * HOUR_PX;
-  const layout = layoutTimebox(tasks);
+  // Tasks and calendar events share the column layout so they never cover each other.
+  const gridStart = START_HOUR * 60;
+  const spans: Span<TimeboxItem>[] = [
+    ...tasks.map((task) => ({
+      item: { kind: 'task' as const, task },
+      start: timeToMinutes(task.timebox_start!),
+      end: timeToMinutes(task.timebox_end!),
+    })),
+    ...dayEvents
+      .filter((e) => !e.allDay && e.endMin > gridStart)
+      .map((event) => ({ item: { kind: 'event' as const, event }, start: Math.max(event.startMin, gridStart), end: event.endMin })),
+  ];
+  const layout = layoutColumns(spans);
   const blockAreaW = 300 - LABEL_W - 8;
 
   const dateObj = parseISO(timeboxDate);
   const isCurToday = isToday(dateObj);
-  const dayLabel = format(dateObj, 'EEE', { locale });
+  const dayLabel = format(dateObj, 'EEEE, MMMM', { locale });
   const dayNum = format(dateObj, 'd');
 
   return (
     <div
-      className="w-[300px] flex-shrink-0 flex flex-col border-l h-full"
-      style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
+      className="w-[300px] flex-shrink-0 flex flex-col h-full"
+      style={{ borderLeft: '1px solid var(--border)', background: 'var(--surface)' }}
     >
       {/* Header */}
-      <div
-        data-tauri-drag-region
-        onPointerDown={(e) => {
-          const target = e.target as HTMLElement;
-          if (!target.closest('button, input, a, [role="button"]')) {
-            e.stopPropagation();
-            getCurrentWindow().startDragging();
-          }
-        }}
-        className="flex items-center px-3 border-b flex-shrink-0"
-        style={{ height: 52, borderColor: 'var(--border)' }}
-      >
-        <span className="text-[11px] font-medium uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--text-4)' }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
-            <path d="M6 3.5v2.5l1.5 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-          </svg>
-          {t('Timebox')}
-        </span>
+      <Toolbar paddingLeft={14} paddingRight={10}>
+        <span className="cx-section">{t('Timebox')}</span>
 
-        <div className="flex items-center gap-1 ml-auto">
-          <button
-            onClick={() => navigateTimeboxDate('prev')}
-            className="w-5 h-5 flex items-center justify-center rounded transition-colors"
-            style={{ color: 'var(--text-4)' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-          >
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M7 2L3 5L7 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => navigateTimeboxDate('today')}
-            className="px-2 py-0.5 text-[11px] font-medium rounded-md border cursor-pointer transition-colors"
-            style={{
-              background: isCurToday ? 'var(--accent-bg)' : 'var(--surface-3)',
-              color: isCurToday ? 'var(--accent)' : 'var(--text-2)',
-              borderColor: isCurToday ? 'var(--accent-border)' : 'var(--border)',
-            }}
-          >
-            {t('Today')}
-          </button>
-
-          <button
-            onClick={() => navigateTimeboxDate('next')}
-            className="w-5 h-5 flex items-center justify-center rounded transition-colors"
-            style={{ color: 'var(--text-4)' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-          >
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M3 2L7 5L3 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+        <div className="flex items-center gap-0.5 ml-auto">
+          {hasAccounts && (
+            <IconButton
+              onClick={() => ensureEvents(timeboxDate, { force: true })}
+              title={calIssue ? `${calIssue.label}: ${calIssue.error ?? ''}` : t('Refresh calendars')}
+              tone={calIssue ? 'var(--warn)' : undefined}
+              size={26}
+            >
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" className={calLoading ? 'animate-spin' : ''}>
+                <path d="M10.5 6A4.5 4.5 0 1 1 9 2.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                <path d="M9.5 1v2.2H7.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </IconButton>
+          )}
+          <IconButton onClick={() => navigateTimeboxDate('prev')} size={26} title="Previous day">
+            <Chevron dir="left" />
+          </IconButton>
+          <PillButton onClick={() => navigateTimeboxDate('today')} active={isCurToday}>{t('Today')}</PillButton>
+          <IconButton onClick={() => navigateTimeboxDate('next')} size={26} title="Next day">
+            <Chevron dir="right" />
+          </IconButton>
         </div>
-      </div>
+      </Toolbar>
 
       {/* Date label */}
-      <div className="flex items-center justify-center gap-2 py-2 border-b flex-shrink-0" style={{ borderColor: 'var(--border-subtle)' }}>
-        <span className="text-[13px] font-semibold" style={{ color: 'var(--text-2)' }}>{dayLabel}</span>
-        <div
-          className="w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold"
+      <div className="flex items-center gap-2 px-3.5 py-2.5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+        <span
+          className="min-w-7 h-7 px-1.5 rounded-full flex items-center justify-center text-[13px] font-semibold tabular-nums"
           style={{
-            background: isCurToday ? 'var(--accent)' : 'var(--surface-3)',
-            color: isCurToday ? 'white' : 'var(--text-2)',
+            background: isCurToday ? 'var(--accent-strong)' : 'var(--surface-hover)',
+            color: isCurToday ? 'var(--on-accent)' : 'var(--ink)',
           }}
         >
           {dayNum}
-        </div>
+        </span>
+        <span className="text-[14px] font-semibold tracking-[-0.01em]" style={{ color: 'var(--ink)' }}>{dayLabel}</span>
       </div>
+
+      {/* All-day calendar events */}
+      {allDayEvents.length > 0 && (
+        <div className="flex flex-wrap gap-1 px-3 py-2 flex-shrink-0 max-h-[76px] overflow-y-auto" style={{ borderBottom: '1px solid var(--border)' }}>
+          {allDayEvents.map((ev) => (
+            <span
+              key={ev.key}
+              title={ev.title || t('(No title)')}
+              className="max-w-full truncate px-1.5 py-0.5 text-[11px] font-medium"
+              style={{
+                borderRadius: 'var(--radius-xs)',
+                background: `color-mix(in srgb, ${ev.color} 14%, var(--surface))`,
+                color: 'var(--ink)',
+                boxShadow: `inset 2px 0 0 ${ev.color}`,
+              }}
+            >
+              {ev.title || t('(No title)')}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Scrollable timeline */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
@@ -337,53 +286,61 @@ export function Timebox() {
           {nowOffset !== null && (
             <div
               className="absolute flex items-center z-10 pointer-events-none"
-              style={{ top: `${nowOffset}px`, left: `${LABEL_W}px`, right: 0 }}
+              style={{ top: `${nowOffset - 1}px`, left: 0, right: 0 }}
             >
-              <div className="w-2 h-2 rounded-full flex-shrink-0 -ml-1" style={{ background: '#EF4444' }} />
-              <div className="flex-1 h-px" style={{ background: '#EF4444' }} />
+              <span
+                className="absolute left-1 -translate-y-1/2 top-1/2 px-1 text-[10px] font-semibold leading-[14px] tabular-nums"
+                style={{ background: 'var(--now-strong)', color: 'var(--on-accent)', borderRadius: 'var(--radius-xs)' }}
+              >
+                {formatTimeStr(minutesToTime(nowMinutes), timeFormat, language)}
+              </span>
+              <div className="flex items-center flex-1" style={{ marginLeft: LABEL_W }}>
+                <div className="cx-pulse w-2 h-2 rounded-full flex-shrink-0 -ml-1" style={{ background: 'var(--now)' }} />
+                <div className="flex-1 h-[2px]" style={{ background: 'var(--now)' }} />
+              </div>
             </div>
           )}
 
-          {calEvents.map((ev) => {
-            const top = timeToOffset(ev.startTime);
-            const startMin = (() => { const [h, m] = ev.startTime.split(':').map(Number); return h * 60 + m; })();
-            const endMin   = (() => { const [h, m] = ev.endTime.split(':').map(Number); return h * 60 + m; })();
-            const height = Math.max(((endMin - startMin) / 60) * HOUR_PX, 15);
-            // Find the calendar this event belongs to by matching calHref
-            const cal = calList.find((c) => ev.calHref.includes(c.id) || c.href.includes(ev.calHref));
-            const color = cal?.color ?? '#6366f1';
-            return (
-              <div
-                key={ev.id}
-                className="absolute pointer-events-none z-[2] rounded-md px-2 py-1 overflow-hidden"
-                style={{
-                  top,
-                  left: LABEL_W + 4,
-                  right: 4,
-                  height,
-                  background: `${color}18`,
-                  border: `1px solid ${color}40`,
-                  borderLeft: `3px solid ${color}bb`,
-                }}
-              >
-                <div className="text-[11px] font-medium leading-tight truncate" style={{ color }}>
-                  {ev.title}
-                </div>
-                {height > 28 && (
-                  <div className="text-[10px] leading-none mt-0.5" style={{ color, opacity: 0.7 }}>
-                    {ev.startTime} – {ev.endTime}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {layout.map(({ task, col, totalCols }) => {
+          {layout.map(({ item, start, end, col, totalCols }) => {
             const colW = Math.floor(blockAreaW / totalCols);
             const left = LABEL_W + 4 + col * colW;
             const width = colW - BLOCK_GAP;
+
+            if (item.kind === 'event') {
+              const ev = item.event;
+              const height = Math.max(((end - start) / 60) * HOUR_PX, 15);
+              const range = `${formatTimeStr(minutesToTime(ev.startMin), timeFormat, language)} – ${
+                ev.endMin >= 1440 ? formatTimeStr('00:00', timeFormat, language) : formatTimeStr(minutesToTime(ev.endMin), timeFormat, language)}`;
+              return (
+                <div
+                  key={ev.key}
+                  title={`${ev.title || t('(No title)')}\n${range}`}
+                  className="cx-rise-in absolute pointer-events-none z-[2] px-3 py-1.5 overflow-hidden"
+                  style={{
+                    top: minutesToOffset(start),
+                    left,
+                    width,
+                    height,
+                    borderRadius: 'var(--radius-md)',
+                    background: `color-mix(in srgb, ${ev.color} 12%, var(--surface))`,
+                    border: `1px solid color-mix(in srgb, ${ev.color} 30%, var(--surface))`,
+                  }}
+                >
+                  <div className="text-[13px] font-semibold leading-[18px] truncate" style={{ color: 'var(--ink)' }}>
+                    {ev.title || t('(No title)')}
+                  </div>
+                  {height > 36 && (
+                    <div className="text-[12px] font-medium leading-4 tabular-nums truncate" style={{ color: `color-mix(in srgb, ${ev.color} 70%, var(--ink))` }}>
+                      {range}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            const task = item.task;
             const labelColor = labels.find((l) => l.id === task.label)?.color ?? null;
-            const color = getBlockColor(task.id, labelColor, isDark);
+            const color = getBlockColor(labelColor);
             return (
               <div key={task.id} className="absolute" style={{ top: `${timeToOffset(task.timebox_start!)}px`, left: `${left}px`, width: `${width}px` }}>
                 <TimeboxBlock task={task} color={color} lang={language} />

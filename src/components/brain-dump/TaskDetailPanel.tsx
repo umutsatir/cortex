@@ -33,7 +33,7 @@ function formatMinutes(min: number): string {
 const PRIORITY_CONFIG: Record<Priority, { labelKey: string; color: string; bg: string }> = {
   low:    { labelKey: 'Low',    color: '#10B981', bg: '#D1FAE5' },
   medium: { labelKey: 'Medium', color: '#F59E0B', bg: '#FEF3C7' },
-  high:   { labelKey: 'High',   color: '#EF4444', bg: '#FEE2E2' },
+  high:   { labelKey: 'High',   color: 'var(--danger)', bg: '#FEE2E2' },
 };
 
 interface RowProps {
@@ -69,7 +69,11 @@ export function TaskDetailPanel() {
   const language   = useGeneralStore((s) => s.language);
   const dateFormat = useGeneralStore((s) => s.dateFormat);
   const t = useT();
-  const task = tasks.find((t) => t.id === selectedTaskId) ?? null;
+  const liveTask = tasks.find((t) => t.id === selectedTaskId) ?? null;
+  // Keep the last task on screen while the panel animates out.
+  const lastTask = useRef(liveTask);
+  if (liveTask) lastTask.current = liveTask;
+  const task = liveTask ?? lastTask.current;
   const currentLabel = labels.find((l) => l.id === task?.label) ?? null;
 
   const [titleVal, setTitleVal] = useState('');
@@ -127,24 +131,26 @@ export function TaskDetailPanel() {
 
   return (
     <AnimatePresence>
-      <>
+      {liveTask && (
         <motion.div
           key="backdrop"
           className="fixed inset-0 z-40"
+          style={{ background: 'color-mix(in srgb, var(--ink) 6%, transparent)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           onClick={() => selectTask(null)}
         />
+      )}
+      {liveTask && (
         <motion.div
           key="panel"
-          className="fixed right-0 top-0 h-full z-50 w-[360px] flex flex-col shadow-xl"
-          style={{ background: 'var(--surface)', borderLeft: '1px solid var(--border)' }}
-          initial={{ x: 360 }}
-          animate={{ x: 0 }}
-          exit={{ x: 360 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+          className="fixed right-0 top-0 h-full z-50 w-[360px] flex flex-col"
+          style={{ boxShadow: 'var(--shadow-pop)', background: 'var(--surface)', borderLeft: '1px solid var(--border)' }}
+          initial={{ x: 380, opacity: 0.6 }}
+          animate={{ x: 0, opacity: 1, transition: { type: 'spring', stiffness: 420, damping: 40 } }}
+          exit={{ x: 380, opacity: 0.6, transition: { duration: 0.22, ease: [0.4, 0, 0.6, 1] } }}
         >
           {/* Header */}
           <div className="flex items-start gap-3 px-5 pt-5 pb-4 border-b flex-shrink-0" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -174,7 +180,7 @@ export function TaskDetailPanel() {
             <button
               className="flex-shrink-0 p-1 rounded transition-colors"
               style={{ color: 'var(--text-4)' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#EF4444'; }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--danger)'; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
               onClick={() => deleteTask(task.id)}
               title="Delete"
@@ -226,7 +232,7 @@ export function TaskDetailPanel() {
                 {dueDiff !== null && (
                   <span
                     className="text-[11px]"
-                    style={{ color: dueDiff < 0 ? '#EF4444' : dueDiff <= 2 ? '#F59E0B' : 'var(--text-4)' }}
+                    style={{ color: dueDiff < 0 ? 'var(--danger)' : dueDiff <= 2 ? '#F59E0B' : 'var(--text-4)' }}
                   >
                     {dueDiff < 0 ? `${Math.abs(dueDiff)}d overdue` : dueDiff === 0 ? 'Today' : `in ${dueDiff}d`}
                   </span>
@@ -239,7 +245,7 @@ export function TaskDetailPanel() {
               icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.2" /><path d="M4.5 4.5h5M4.5 7h5M4.5 9.5h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>}
               label={t('List')}
             >
-              <span className="font-medium" style={{ color: 'var(--accent)' }}>{listLabel}</span>
+              <span className="font-medium" style={{ color: 'var(--accent-hover)' }}>{listLabel}</span>
             </DetailRow>
 
             {/* Estimated time */}
@@ -362,9 +368,9 @@ export function TaskDetailPanel() {
             </button>
           </div>
         </motion.div>
-      </>
+      )}
 
-      {showLabelPicker && labelBtnRef.current && (
+      {liveTask && showLabelPicker && labelBtnRef.current && (
         <LabelPicker
           anchorEl={labelBtnRef.current}
           selectedId={task.label}
@@ -372,7 +378,7 @@ export function TaskDetailPanel() {
           onClose={() => setShowLabelPicker(false)}
         />
       )}
-      {showPriorityPicker && priorityBtnRef.current && (
+      {liveTask && showPriorityPicker && priorityBtnRef.current && (
         <PriorityPicker
           anchorEl={priorityBtnRef.current}
           selected={task.priority}

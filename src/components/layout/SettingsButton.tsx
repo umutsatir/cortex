@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SettingsPanel } from '../settings/SettingsPanel';
+import { IconButton } from '../ui/Toolbar';
 
 export function SettingsButton() {
   const [open, setOpen] = useState(false);
@@ -13,25 +14,12 @@ export function SettingsButton() {
 
   return (
     <>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        title="Settings"
-        className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors flex-shrink-0"
-        style={{
-          color: open ? 'var(--accent)' : 'var(--text-3)',
-          background: open ? 'var(--accent-bg)' : 'transparent',
-        }}
-        onMouseEnter={(e) => { if (!open) (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'; }}
-        onMouseLeave={(e) => { if (!open) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-      >
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-          <path
-            d="M6.1 1.5a1.4 1.4 0 0 1 2.8 0l.15.6a.9.9 0 0 0 1.3.5l.55-.3a1.4 1.4 0 0 1 1.97 1.97l-.3.55a.9.9 0 0 0 .5 1.3l.6.15a1.4 1.4 0 0 1 0 2.8l-.6.15a.9.9 0 0 0-.5 1.3l.3.55a1.4 1.4 0 0 1-1.97 1.97l-.55-.3a.9.9 0 0 0-1.3.5l-.15.6a1.4 1.4 0 0 1-2.8 0l-.15-.6a.9.9 0 0 0-1.3-.5l-.55.3A1.4 1.4 0 0 1 2.13 11.1l.3-.55a.9.9 0 0 0-.5-1.3l-.6-.15a1.4 1.4 0 0 1 0-2.8l.6-.15a.9.9 0 0 0 .5-1.3l-.3-.55A1.4 1.4 0 0 1 4.1 2.3l.55.3a.9.9 0 0 0 1.3-.5L6.1 1.5z"
-            stroke="currentColor" strokeWidth="1.15" strokeLinejoin="round"
-          />
-          <circle cx="7.5" cy="7.5" r="1.75" stroke="currentColor" strokeWidth="1.15" />
+      <IconButton onClick={() => setOpen((v) => !v)} active={open} title="Settings (,)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+          <circle cx="12" cy="12" r="3" />
         </svg>
-      </button>
+      </IconButton>
 
       <AnimatePresence>
         {open && <SettingsPanel onClose={() => setOpen(false)} />}

@@ -18,15 +18,12 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
   if (!active) {
     return (
       <button
-        className="flex items-center gap-2 w-full px-3 py-2.5 text-[13px] transition-colors text-left"
-        style={{ color: 'var(--text-5)' }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-5)'; }}
+        className="cx-press flex items-center gap-2 w-full h-9 px-2.5 text-[13px] text-left hover:bg-[var(--surface-hover)] hover:text-[var(--ink-body)]"
+        style={{ color: 'var(--ink-secondary)', borderRadius: 'var(--radius-sm)' }}
         onClick={() => setActive(true)}
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
-          <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" />
-          <path d="M7 4v6M4 7h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+          <path d="M7 2.5v9M2.5 7h9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
         </svg>
         {t('Add a task')}
       </button>
@@ -34,19 +31,22 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
   }
 
   return (
-    <div className="px-3 py-2">
+    <div
+      className="cx-pop-in flex items-center h-9 px-2.5"
+      style={{ background: 'var(--surface)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', boxShadow: '0 0 0 3px var(--accent-soft)' }}
+    >
       <input
         ref={inputRef}
         autoFocus
-        className="w-full text-[13px] bg-transparent outline-none border-b pb-0.5"
-        style={{ color: 'var(--text-1)', borderBottomColor: 'var(--accent)' }}
-        placeholder="Task name…"
+        className="w-full text-[13px] bg-transparent outline-none placeholder:text-[var(--ink-secondary)]"
+        style={{ color: 'var(--ink)' }}
+        placeholder={t('Task name…')}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
-            const t = value.trim();
-            if (t) addTask(t, { scheduled_date: dateStr });
+            const title = value.trim();
+            if (title) addTask(title, { scheduled_date: dateStr });
             setValue('');
             setActive(false);
           }
@@ -66,13 +66,12 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
 
 interface Props {
   date: Date;
-  onFocusClick?: () => void;
+  last?: boolean;
 }
 
-export function DayColumn({ date, onFocusClick }: Props) {
+export function DayColumn({ date, last = false }: Props) {
   const dateStr = format(date, 'yyyy-MM-dd');
   const isCurrentDay = isToday(date);
-  const t = useT();
   const locale = useDateLocale();
 
   const tasks = useTaskStore(useShallow((s) =>
@@ -80,65 +79,64 @@ export function DayColumn({ date, onFocusClick }: Props) {
   ));
 
   const { setNodeRef, isOver } = useDroppable({ id: `day__${dateStr}` });
+  const doneCount = tasks.filter((task) => task.is_completed).length;
 
   return (
     <div
-      className="flex flex-col flex-shrink-0 border-r last:border-r-0"
-      style={{ width: 272, borderColor: 'var(--border)' }}
+      className="group/day flex flex-col min-w-0 min-h-0"
+      style={{ borderRight: last ? undefined : '1px solid var(--border)' }}
     >
       {/* Day header */}
       <div
-        className="px-4 pt-4 pb-3 border-b flex-shrink-0"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border-subtle)' }}
+        className="relative flex flex-col items-center justify-center py-3 flex-shrink-0 transition-colors"
+        style={{
+          background: isCurrentDay ? 'var(--accent-soft)' : 'var(--surface)',
+          borderBottom: '1px solid var(--border)',
+        }}
       >
-        <div className="flex items-start justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="text-[20px] font-bold leading-none" style={{ color: 'var(--text-1)' }}>
-              {format(date, 'EEE', { locale })}
-            </span>
-            <span className="text-[15px] font-normal leading-none" style={{ color: 'var(--text-4)' }}>
-              {format(date, 'MMM d', { locale })}
-            </span>
-            {isCurrentDay && (
-              <span className="ml-1 px-2 py-0.5 text-[11px] font-semibold rounded-full leading-none" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
-                {t('Today')}
-              </span>
-            )}
-          </div>
-
-          {isCurrentDay && onFocusClick && (
-            <button
-              className="text-[11px] transition-colors ml-2 flex-shrink-0"
-              style={{ color: 'var(--text-4)' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
-              onClick={onFocusClick}
-            >
-              {t('Focus')}
-            </button>
-          )}
-        </div>
-
+        <span className="text-[13px] font-medium leading-4" style={{ color: isCurrentDay ? 'var(--accent-hover)' : 'var(--ink-secondary)' }}>
+          {format(date, 'EEE', { locale })}
+        </span>
+        <span className="mt-1 text-[22px] font-semibold leading-7 tracking-[-0.02em] tabular-nums" style={{ color: isCurrentDay ? 'var(--accent-hover)' : 'var(--ink)' }}>
+          {format(date, 'd')}
+        </span>
         {tasks.length > 0 && (
-          <div className="mt-1.5 text-[11px]" style={{ color: 'var(--text-4)' }}>
-            {tasks.filter((task) => task.is_completed).length}/{tasks.length} {t('done')}
-          </div>
+          <span
+            className="absolute top-2 right-2.5 text-[11px] font-medium tabular-nums"
+            style={{ color: isCurrentDay ? 'var(--accent-hover)' : 'var(--ink-secondary)' }}
+            title={`${doneCount}/${tasks.length}`}
+          >
+            {doneCount}/{tasks.length}
+          </span>
         )}
+        {/* Progress hairline */}
+        <div className="absolute left-0 right-0 bottom-[-1px] h-[2px]">
+          <div
+            className="h-full transition-[width] duration-500 ease-[cubic-bezier(.2,.7,.2,1)]"
+            style={{ width: tasks.length ? `${(doneCount / tasks.length) * 100}%` : 0, background: 'var(--accent)' }}
+          />
+        </div>
       </div>
 
       {/* Tasks + drop zone */}
       <div
         ref={setNodeRef}
-        className="flex-1 overflow-y-auto transition-colors"
-        style={{ background: isOver ? 'var(--accent-bg)' : 'var(--surface)' }}
+        className="flex-1 overflow-y-auto p-2 flex flex-col gap-2 transition-[background-color,box-shadow] duration-200"
+        style={{
+          background: isOver
+            ? 'var(--accent-soft)'
+            : isCurrentDay ? 'color-mix(in srgb, var(--accent-soft) 45%, var(--surface))' : 'var(--surface)',
+          boxShadow: isOver ? 'inset 0 0 0 1.5px var(--accent)' : undefined,
+        }}
       >
-        <InlineAdd dateStr={dateStr} />
-
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {tasks.map((task) => (
             <TaskItem key={task.id} task={task} />
           ))}
         </AnimatePresence>
+        <div className={`transition-opacity duration-200 ${tasks.length ? 'opacity-0 group-hover/day:opacity-100 focus-within:opacity-100' : 'opacity-60 group-hover/day:opacity-100'}`}>
+          <InlineAdd dateStr={dateStr} />
+        </div>
       </div>
     </div>
   );

@@ -1,23 +1,16 @@
+import { useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useGeneralStore } from '../../store/generalStore';
-import { formatTimeStr } from './Timebox';
+import { formatTimeStr, type BlockColor } from './Timebox';
+import { HOUR_PX, SLOT_MIN, minutesToTime, timeToMinutes } from '../../lib/time';
 import type { Task } from '../../types';
-
-const HOUR_PX = 60;
-
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
-
-interface ColorScheme { bg: string; border: string; text: string }
 
 interface Props {
   task: Task;
-  color: ColorScheme;
+  color: BlockColor;
   lang?: string;
 }
 
@@ -26,6 +19,8 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
     useShallow((s) => ({ toggleComplete: s.toggleComplete, updateTask: s.updateTask, selectTask: s.selectTask }))
   );
   const timeFormat = useGeneralStore((s) => s.timeFormat);
+  // End time while the resize handle is being dragged; saved once on mouseup.
+  const [resizeEnd, setResizeEnd] = useState<number | null>(null);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tb::${task.id}`,
@@ -35,11 +30,12 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
   if (!task.timebox_start || !task.timebox_end) return null;
 
   const startMin = timeToMinutes(task.timebox_start);
-  const endMin = timeToMinutes(task.timebox_end);
+  const endMin = resizeEnd ?? timeToMinutes(task.timebox_end);
+  const endStr = minutesToTime(endMin);
   const height = Math.max(((endMin - startMin) / 60) * HOUR_PX, 24);
 
-  const completedStyle: ColorScheme = task.is_completed
-    ? { bg: 'var(--surface-3)', border: 'var(--border)', text: 'var(--text-4)' }
+  const completedStyle: BlockColor = task.is_completed
+    ? { bg: 'var(--surface-hover)', border: 'var(--border)', text: 'var(--ink-secondary)', meta: 'var(--ink-secondary)' }
     : color;
 
   function handleResizeMouseDown(e: React.MouseEvent) {
@@ -47,18 +43,19 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
     e.preventDefault();
     const startY = e.clientY;
     const startEndMin = endMin;
+    let latest = startEndMin;
 
     function onMouseMove(ev: MouseEvent) {
-      const delta = Math.round(((ev.clientY - startY) / HOUR_PX) * 60 / 15) * 15;
-      const newEndMin = Math.max(startMin + 15, Math.min(startEndMin + delta, 24 * 60));
-      const h = Math.floor(newEndMin / 60);
-      const m = newEndMin % 60;
-      updateTask(task.id, { timebox_end: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}` });
+      const delta = Math.round(((ev.clientY - startY) / HOUR_PX) * 60 / SLOT_MIN) * SLOT_MIN;
+      latest = Math.max(startMin + SLOT_MIN, Math.min(startEndMin + delta, 24 * 60));
+      setResizeEnd(latest);
     }
 
     function onMouseUp() {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      setResizeEnd(null);
+      if (latest !== startEndMin) updateTask(task.id, { timebox_end: minutesToTime(latest) });
     }
 
     window.addEventListener('mousemove', onMouseMove);
@@ -73,9 +70,10 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
         transform: CSS.Translate.toString(transform),
         opacity: isDragging ? 0.4 : 1,
         background: completedStyle.bg,
-        borderColor: completedStyle.border,
+        border: `1px solid ${completedStyle.border}`,
+        borderRadius: 'var(--radius-md)',
       }}
-      className="relative rounded-lg border px-2 py-1 cursor-grab active:cursor-grabbing flex flex-col gap-0.5 overflow-hidden select-none group/block"
+      className="cx-lift cx-rise-in relative px-3 py-1.5 cursor-grab hover:shadow-[var(--shadow-hover)] active:cursor-grabbing flex flex-col gap-0.5 overflow-hidden select-none group/block"
       {...attributes}
       {...listeners}
     >
@@ -83,8 +81,8 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
         <button
           className="flex-shrink-0 w-3.5 h-3.5 mt-0.5 rounded-full border transition-colors flex items-center justify-center"
           style={{
-            borderColor: task.is_completed ? completedStyle.text : completedStyle.border,
-            background: task.is_completed ? completedStyle.text : undefined,
+            borderColor: task.is_completed ? 'var(--accent)' : completedStyle.meta,
+            background: task.is_completed ? 'var(--accent)' : undefined,
           }}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); toggleComplete(task.id); }}
@@ -96,7 +94,7 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
           )}
         </button>
         <span
-          className={`flex-1 text-[11px] font-medium leading-snug cursor-pointer hover:underline ${task.is_completed ? 'line-through' : ''}`}
+          className={`flex-1 min-w-0 text-[13px] font-semibold leading-[18px] cursor-pointer hover:underline ${task.is_completed ? 'line-through' : ''}`}
           style={{ color: completedStyle.text }}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); selectTask(task.id); }}
@@ -106,7 +104,7 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
         {/* Remove from timebox */}
         <button
           className="flex-shrink-0 opacity-0 group-hover/block:opacity-100 transition-opacity rounded"
-          style={{ color: completedStyle.text }}
+          style={{ color: completedStyle.meta }}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
@@ -120,15 +118,15 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
       </div>
 
       {height > 40 && (
-        <div className="flex items-center gap-1.5 pl-5">
-          <span className="text-[10px]" style={{ color: completedStyle.text + 'BB' }}>
-            {formatTimeStr(task.timebox_start!, timeFormat, lang)} – {formatTimeStr(task.timebox_end!, timeFormat, lang)}
+        <div className="flex items-center gap-1.5 pl-5 mt-0.5">
+          <span className="text-[12px] font-medium tabular-nums" style={{ color: completedStyle.meta }}>
+            {formatTimeStr(task.timebox_start!, timeFormat, lang)} – {formatTimeStr(endStr, timeFormat, lang)}
           </span>
           {task.estimated_minutes != null && task.estimated_minutes > 0 && (() => {
             const blockMin = endMin - startMin;
             const match = blockMin === task.estimated_minutes;
             return (
-              <span className="text-[10px]" style={{ color: match ? completedStyle.text + 'BB' : '#F59E0B' }}>
+              <span className="text-[12px] font-medium tabular-nums" style={{ color: match ? completedStyle.meta : 'var(--warn)' }}>
                 · est {task.estimated_minutes < 60 ? `${task.estimated_minutes}m` : `${Math.floor(task.estimated_minutes / 60)}h${task.estimated_minutes % 60 ? (task.estimated_minutes % 60) + 'm' : ''}`}
               </span>
             );
@@ -141,7 +139,7 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
         onMouseDown={handleResizeMouseDown}
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <div className="w-8 h-0.5 rounded-full opacity-30" style={{ background: completedStyle.text }} />
+        <div className="w-[22px] h-[3px] rounded-full opacity-0 group-hover/block:opacity-60 transition-opacity" style={{ background: 'var(--accent)' }} />
       </div>
     </div>
   );

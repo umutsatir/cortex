@@ -1,21 +1,10 @@
 import type { DragEndEvent } from '@dnd-kit/core';
 import { format } from 'date-fns'; // used by todayStr()
 import { useTaskStore } from '../store/taskStore';
+import { minutesToTime, timeToMinutes } from '../lib/time';
 import type { EisenhowerQuadrant } from '../types';
 
 const todayStr = () => format(new Date(), 'yyyy-MM-dd');
-
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function minutesToTime(min: number): string {
-  const clamped = Math.min(min, 24 * 60 - 1);
-  const h = Math.floor(clamped / 60);
-  const m = clamped % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
 
 export function useDragDrop() {
   const updateTask = useTaskStore((s) => s.updateTask);

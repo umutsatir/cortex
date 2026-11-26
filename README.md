@@ -77,6 +77,13 @@ Overview of all single-key shortcuts (see table below).
 ### Update
 Manually check for a new version and install it in-app without going to the browser.
 
+### Integrations
+Show events from your calendars (read-only) in the Timebox, next to your timeboxed tasks. Overlapping events and tasks are laid out side by side; all-day events appear as chips under the date.
+- **iCloud Calendar** — Apple ID + an [app-specific password](https://appleid.apple.com) (Sign-In and Security → App-Specific Passwords).
+- **Google Calendar** — sign in with Google in your browser. Several Google accounts can be connected.
+
+Per calendar you can toggle visibility and change the colour. Recurring events, time zones / DST and declined invitations (Google) are handled. Passwords and tokens are stored in the macOS Keychain, never in the app's local storage.
+
 All settings persist across sessions.
 
 ---
@@ -150,13 +157,14 @@ src/
 │   ├── common/           # LabelPicker, PriorityPicker
 │   ├── eisenhower/       # EisenhowerMatrix, Quadrant
 │   ├── layout/           # AppShell, Header, SettingsButton
-│   ├── settings/         # SettingsPanel (modal)
+│   ├── settings/         # SettingsPanel (modal), IntegrationsSection
 │   ├── timebox/          # Timebox, TimeboxBlock, TimeSlot
 │   ├── today/            # TodayFocus, TodayTaskList
 │   ├── updater/          # UpdateBanner
 │   └── weekly/           # WeeklyTimeline, WeekNav, DayColumn
 ├── hooks/
 │   ├── useDateLocale.ts  # Returns date-fns locale based on language setting
+│   ├── useDayEvents.ts   # Calendar events for one day (all accounts)
 │   ├── useDragDrop.ts    # Centralised drag-end handler
 │   ├── useIsDark.ts      # Reactive dark-mode detector
 │   ├── useT.ts           # Translation hook
@@ -165,13 +173,24 @@ src/
 │   └── index.ts          # EN / TR translation dictionaries
 ├── store/
 │   ├── generalStore.ts   # Language, week start, default view, time/date format
+│   ├── integrationStore.ts # Calendar accounts, calendars, cached events per month
 │   ├── labelStore.ts     # User-defined labels
 │   ├── taskStore.ts      # Tasks, view state, navigation, today refresh
 │   └── themeStore.ts     # Theme, accent colour, CSS variable application
 ├── types/
 │   └── index.ts
 └── lib/
-    └── db.ts             # Tauri SQLite helpers
+    ├── calendarEvents.ts # Event → local day slices, month bounds
+    ├── db.ts             # Tauri SQLite helpers
+    └── time.ts           # Timebox grid constants, HH:MM helpers, column layout
+
+src-tauri/src/
+├── lib.rs                # Tauri builder + command registration
+├── caldav.rs             # iCloud CalDAV client
+├── ical.rs               # iCalendar parsing + recurrence expansion
+├── google.rs             # Google OAuth (loopback + PKCE) and Calendar API
+├── secrets.rs            # macOS Keychain access
+└── events.rs             # Shared event type
 ```
 
 ---
@@ -192,9 +211,26 @@ pnpm tauri dev
 
 # Build for production
 pnpm tauri build
+
+# Tests (frontend + Rust)
+pnpm test
+cd src-tauri && cargo test
 ```
 
 The Vite dev server runs on `http://localhost:1420`.
+
+### Google Calendar setup
+The Google OAuth client is compiled into the app. Without it the app works, and the Google button says it is not configured.
+
+1. In [Google Cloud Console](https://console.cloud.google.com), create a project and enable the **Google Calendar API**.
+2. Configure the **OAuth consent screen** (External) with the scopes `openid`, `email` and `.../auth/calendar.readonly`, then **publish it to production**: in *Testing* mode refresh tokens expire after 7 days. Until the app is verified, Google shows an "unverified app" warning (fine for personal use, up to 100 users).
+3. Create an **OAuth client ID** of type **Desktop app**.
+4. Put the values in `src-tauri/.env` (git-ignored) for local builds:
+   ```
+   GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=xxxx
+   ```
+   and add the same two names as GitHub repository secrets for release builds.
 
 ---
 

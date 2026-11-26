@@ -1,9 +1,9 @@
 import { useDroppable } from '@dnd-kit/core';
 import { AnimatePresence } from 'framer-motion';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
+import { Toolbar, TRAFFIC_LIGHTS_W } from '../ui/Toolbar';
 import { TaskInput } from './TaskInput';
 import { TaskItem } from './TaskItem';
 
@@ -16,40 +16,34 @@ export function BrainDump() {
 
   return (
     <div
-      className="w-[280px] flex-shrink-0 flex flex-col border-r h-full"
-      style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
+      className="w-[280px] flex-shrink-0 flex flex-col h-full"
+      style={{ borderRight: '1px solid var(--border)', background: 'var(--surface-sunken)' }}
     >
-      <div
-        data-tauri-drag-region
-        onPointerDown={(e) => {
-          const target = e.target as HTMLElement;
-          if (!target.closest('button, input, a, [role="button"]')) {
-            e.stopPropagation();
-            getCurrentWindow().startDragging();
-          }
-        }}
-        className="flex items-center border-b flex-shrink-0"
-        style={{ height: 52, paddingLeft: 80, paddingRight: 16, borderColor: 'var(--border)' }}
-      >
-        <span className="text-[13px] font-semibold" style={{ color: 'var(--text-1)' }}>{t('Brain Dump')}</span>
-      </div>
+      <Toolbar paddingLeft={TRAFFIC_LIGHTS_W + 8}>
+        <span className="cx-section">{t('Brain Dump')}</span>
+        {tasks.length > 0 && (
+          <span className="ml-auto text-[11px] font-medium tabular-nums" style={{ color: 'var(--ink-secondary)' }}>
+            {tasks.length}
+          </span>
+        )}
+      </Toolbar>
 
       <TaskInput placeholder={t('Capture a thought…')} captureNewTaskShortcut />
 
       <div
         ref={setNodeRef}
-        className="flex-1 overflow-y-auto py-1 transition-colors"
-        style={{ background: isOver ? 'var(--accent-bg)' : 'transparent' }}
+        className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-2 transition-colors"
+        style={{ background: isOver ? 'var(--accent-soft)' : 'transparent' }}
       >
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {tasks.map((task) => (
             <TaskItem key={task.id} task={task} />
           ))}
         </AnimatePresence>
 
         {tasks.length === 0 && (
-          <div className="px-4 py-8 text-center">
-            <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>{t('Drop tasks here or type above')}</p>
+          <div className="cx-rise-in px-4 py-10 text-center">
+            <p className="text-[12px] leading-[18px]" style={{ color: 'var(--ink-secondary)' }}>{t('Drop tasks here or type above')}</p>
           </div>
         )}
       </div>

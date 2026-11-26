@@ -17,7 +17,9 @@ import { WeeklyTimeline } from '../weekly/WeeklyTimeline';
 import { Timebox } from '../timebox/Timebox';
 import { TodayFocus } from '../today/TodayFocus';
 import { TaskDetailPanel } from '../brain-dump/TaskDetailPanel';
+import { TaskDragCard } from '../brain-dump/TaskItem';
 import { useTaskStore } from '../../store/taskStore';
+import { useIntegrationStore } from '../../store/integrationStore';
 import { useDragDrop } from '../../hooks/useDragDrop';
 import { UpdateBanner } from '../updater/UpdateBanner';
 import type { Task } from '../../types';
@@ -39,13 +41,17 @@ export function AppShell() {
   useEffect(() => { init(); }, [init]);
 
   useEffect(() => {
-    const refresh = () => useTaskStore.getState().refreshDay();
+    const refresh = () => {
+      useTaskStore.getState().refreshDay();
+      // Picks up calendar changes made elsewhere; a no-op while the cache is fresh.
+      useIntegrationStore.getState().ensureEvents(useTaskStore.getState().timeboxDate);
+    };
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
     window.addEventListener('focus', refresh);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') refresh();
-    });
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);
 
@@ -155,12 +161,8 @@ export function AppShell() {
       <TaskDetailPanel />
       <UpdateBanner />
 
-      <DragOverlay>
-        {activeTask && (
-          <div className="rounded-lg px-3 py-2 shadow-lg text-[13px] opacity-90 max-w-[220px] truncate" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-1)' }}>
-            {activeTask.title}
-          </div>
-        )}
+      <DragOverlay dropAnimation={{ duration: 220, easing: 'cubic-bezier(.2,.7,.2,1)' }}>
+        {activeTask && <TaskDragCard title={activeTask.title} />}
       </DragOverlay>
     </DndContext>
   );

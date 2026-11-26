@@ -7,8 +7,8 @@ export function UpdateBanner() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-[13px]"
-      style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-2)', maxWidth: 320 }}
+      className="cx-rise-in fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl text-[13px]"
+      style={{ boxShadow: 'var(--shadow-pop)', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-2)', maxWidth: 320 }}
     >
       {status === 'available' && (
         <>
@@ -19,7 +19,7 @@ export function UpdateBanner() {
           <button
             onClick={install}
             className="flex-shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
-            style={{ background: 'var(--accent)', color: '#fff' }}
+            style={{ background: 'var(--accent-strong)', color: 'var(--on-accent)' }}
           >
             Install
           </button>

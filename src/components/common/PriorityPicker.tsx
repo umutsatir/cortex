@@ -4,7 +4,7 @@ import type { Priority } from '../../types';
 
 const OPTIONS: { value: Priority | null; label: string; color: string }[] = [
   { value: null,     label: 'No priority', color: 'var(--text-4)' },
-  { value: 'high',   label: 'High',        color: '#EF4444' },
+  { value: 'high',   label: 'High',        color: 'var(--danger)' },
   { value: 'medium', label: 'Medium',      color: '#F59E0B' },
   { value: 'low',    label: 'Low',         color: '#10B981' },
 ];
@@ -44,8 +44,8 @@ export function PriorityPicker({ anchorEl, selected, onSelect, onClose }: Props)
   return createPortal(
     <div
       ref={ref}
-      className="fixed rounded-xl shadow-xl py-1 overflow-hidden"
-      style={{
+      className="cx-pop-in fixed rounded-xl py-1 overflow-hidden"
+      style={{ boxShadow: 'var(--shadow-pop)',
         top: pos.top,
         left: pos.left,
         width: 152,

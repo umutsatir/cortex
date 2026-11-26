@@ -54,8 +54,8 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
   return createPortal(
     <div
       ref={pickerRef}
-      className="fixed rounded-xl shadow-xl overflow-hidden"
-      style={{
+      className="cx-pop-in fixed rounded-xl overflow-hidden"
+      style={{ boxShadow: 'var(--shadow-pop)',
         top: pos.top,
         left: pos.left,
         width: 220,
@@ -131,7 +131,7 @@ export function LabelPicker({ anchorEl, selectedId, onSelect, onClose }: Props) 
                 className="transition-colors"
                 style={{ color: 'var(--text-5)' }}
                 onPointerDown={(e) => e.stopPropagation()}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#EF4444'; }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--danger)'; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-5)'; }}
                 onClick={(e) => { e.stopPropagation(); deleteLabel(label.id); if (selectedId === label.id) onSelect(null); }}
                 title="Delete label"

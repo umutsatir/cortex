@@ -3,45 +3,109 @@
 /* Class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+/* Inter ships with the app (one variable file) so the UI never depends on the network. */
+@font-face {
+  font-family: 'Inter';
+  src: url('./assets/fonts/InterVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
 }
 
-/* ── Color tokens ───────────────────────────────────────────── */
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* ── Design tokens (Cortex Design System) ──────────────────────
+   Light values are the design system's; dark values are derived.
+   --accent, --accent-soft/-line/-hover/-strong are overwritten at runtime
+   by the accent preset (themeStore.applyTheme). */
 :root {
-  --bg:             #FAFAFA;
-  --surface:        #FFFFFF;
-  --surface-2:      #F9FAFB;
-  --surface-3:      #F3F4F6;
-  --border:         #E5E7EB;
-  --border-subtle:  #F3F4F6;
-  --text-1:         #111827;
-  --text-2:         #374151;
-  --text-3:         #6B7280;
-  --text-4:         #9CA3AF;
-  --text-5:         #D1D5DB;
-  --accent:         #6366F1;
-  --accent-bg:      #EEF2FF;
-  --accent-border:  #C7D2FE;
-  --accent-text:    #4338CA;
+  --bg:              #FAFAFA;
+  --surface:         #FFFFFF;
+  --surface-sunken:  #F9FAFB;
+  --surface-hover:   #F3F4F6;
+  --border:          #E5E7EB;
+  --border-strong:   #D1D5DB;
+  --control-border:  #8B919C;
+
+  --ink:             #111827;
+  --ink-body:        #4B5563;
+  --ink-secondary:   #6B7280;
+  --ink-muted:       #9CA3AF;
+
+  --accent:          #6366F1;
+  --accent-strong:   #4F46E5;
+  --accent-hover:    #4338CA;
+  --accent-soft:     #EEF2FF;
+  --accent-line:     #C7D2FE;
+  --accent-tint:     color-mix(in srgb, var(--accent) 16%, var(--surface));
+  --on-accent:       #FFFFFF;
+
+  --now:             #EF4444;
+  --now-strong:      #B91C1C;
+  --warn:            #B45309;
+  --danger:          #DC2626;
+
+  --q-do-bg:         #FEF2F2;  --q-do:        #DC2626;
+  --q-schedule-bg:   #EFF6FF;  --q-schedule:  #2563EB;
+  --q-delegate-bg:   #FEFCE8;  --q-delegate:  #CA8A04;
+  --q-eliminate-bg:  #F9FAFB;  --q-eliminate: #6B7280;
+
+  --shadow-card:   0 1px 2px rgba(17,24,39,0.05);
+  --shadow-hover:  0 8px 24px -8px rgba(17,24,39,0.12);
+  --shadow-drag:   0 18px 32px -10px rgba(17,24,39,0.24), 0 4px 10px rgba(17,24,39,0.08);
+  --shadow-pop:    0 16px 40px -12px rgba(17,24,39,0.22), 0 4px 12px rgba(17,24,39,0.06);
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Legacy names, kept so older components follow the new palette. */
+  --surface-2:     var(--surface-sunken);
+  --surface-3:     var(--surface-hover);
+  --border-subtle: var(--surface-hover);
+  --text-1:        var(--ink);
+  --text-2:        var(--ink-body);
+  --text-3:        var(--ink-secondary);
+  --text-4:        var(--ink-muted);
+  --text-5:        var(--border-strong);
+  --accent-bg:     var(--accent-soft);
+  --accent-border: var(--accent-line);
+  --accent-text:   var(--accent-hover);
 }
 
 .dark {
-  --bg:             #111111;
-  --surface:        #1C1C1E;
-  --surface-2:      #242426;
-  --surface-3:      #2C2C2E;
-  --border:         #38383A;
-  --border-subtle:  #2C2C2E;
-  --text-1:         #F2F2F7;
-  --text-2:         #D1D1D6;
-  --text-3:         #8E8E93;
-  --text-4:         #636366;
-  --text-5:         #48484A;
-  --accent:         #818CF8;
-  --accent-bg:      #1E1B4B;
-  --accent-border:  #312E81;
-  --accent-text:    #A5B4FC;
+  --bg:              #111113;
+  --surface:         #1C1C1F;
+  --surface-sunken:  #17171A;
+  --surface-hover:   #2A2A2E;
+  --border:          #333338;
+  --border-strong:   #46464C;
+  --control-border:  #6E6E76;
+
+  --ink:             #F3F4F6;
+  --ink-body:        #D1D5DB;
+  --ink-secondary:   #A1A1AA;
+  --ink-muted:       #6B6B73;
+
+  --now:             #F87171;
+  --now-strong:      #DC2626;
+  --warn:            #FBBF24;
+  --danger:          #F87171;
+
+  --q-do-bg:         #2A1718;  --q-do:        #F87171;
+  --q-schedule-bg:   #141D2C;  --q-schedule:  #60A5FA;
+  --q-delegate-bg:   #29230F;  --q-delegate:  #FACC15;
+  --q-eliminate-bg:  #19191C;  --q-eliminate: #A1A1AA;
+
+  --shadow-card:   0 1px 2px rgba(0,0,0,0.30);
+  --shadow-hover:  0 8px 24px -8px rgba(0,0,0,0.55);
+  --shadow-drag:   0 18px 32px -10px rgba(0,0,0,0.65), 0 4px 10px rgba(0,0,0,0.35);
+  --shadow-pop:    0 16px 40px -12px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.3);
 }
 
 /* ── Base ───────────────────────────────────────────────────── */
@@ -51,15 +115,106 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: var(--font-family-sans);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
   background: var(--bg);
-  color: var(--text-1);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   user-select: none;
 }
 
+/* Times always use tabular numbers. */
+.tabular-nums, time { font-variant-numeric: tabular-nums; }
+
+/* Panel section label (design system: app-section). */
+.cx-section {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-secondary);
+}
+
+.cx-kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  font: 500 11px/14px var(--font-mono);
+  color: var(--ink-secondary);
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input:focus-visible, textarea:focus-visible { outline: none; }
+
+/* ── Motion ──────────────────────────────────────────────────
+   Design system: quiet and short. Hover lifts 1px (controls) / 2px (cards),
+   160–200ms, ease cubic-bezier(.2,.7,.2,1). The independent `translate` and
+   `scale` properties are used so they never fight dnd-kit's inline `transform`. */
+:root {
+  --ease-out: cubic-bezier(.2,.7,.2,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+}
+
+/* Cards that lift on hover (tasks, timebox blocks). */
+.cx-lift {
+  transition: translate .18s var(--ease-out), box-shadow .18s var(--ease-out),
+              border-color .18s var(--ease-out), background-color .18s var(--ease-out);
+}
+.cx-lift:hover { translate: 0 -2px; }
+.cx-lift:active { translate: 0 0; transition-duration: .08s; }
+
+/* Pressable controls: a small, springy squeeze on click. */
+.cx-press {
+  transition: scale .16s var(--ease-spring), background-color .16s ease, color .16s ease,
+              border-color .16s ease, box-shadow .16s ease, translate .16s var(--ease-out);
+}
+.cx-press:active { scale: .94; transition-duration: .06s; }
+
+/* Popovers and toasts grow out of their anchor. */
+@keyframes cx-pop-in {
+  from { opacity: 0; scale: .96; translate: 0 -4px; }
+  to   { opacity: 1; scale: 1;   translate: 0 0; }
+}
+.cx-pop-in { animation: cx-pop-in .18s var(--ease-out) backwards; transform-origin: top left; }
+
+@keyframes cx-rise-in {
+  from { opacity: 0; translate: 0 8px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+.cx-rise-in { animation: cx-rise-in .24s var(--ease-out) backwards; }
+
+/* Animated strike-through for completed titles. */
+.cx-strike {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 55%;
+  background-size: 0 1px;
+  transition: background-size .28s var(--ease-out), color .2s ease;
+}
+.cx-strike[data-done="true"] { background-size: 100% 1px; }
+
+/* Soft pulse on the "now" dot. */
+@keyframes cx-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--now) 45%, transparent); }
+  70%  { box-shadow: 0 0 0 6px color-mix(in srgb, var(--now) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--now) 0%, transparent); }
+}
+.cx-pulse { animation: cx-pulse 2s ease-out infinite; }
+
+/* Row hover inside menus. */
+.cx-menu-item { transition: background-color .12s ease, padding-left .16s var(--ease-out); }
+.cx-menu-item:hover { background: var(--surface-hover); }
+
 /* ── Scrollbars ─────────────────────────────────────────────── */
-::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar       { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
