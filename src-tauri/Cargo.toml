@@ -1,6 +1,6 @@
 [package]
 name = "cortex"
-version = "0.3.0"
+version = "0.3.1"
 description = "Cortex - Daily Planning App"
 authors = ["umut"]
 edition = "2021"
@@ -30,4 +30,3 @@ base64 = "0.22"
 rand = "0.8"
 url = "2.5.9"
 tokio = { version = "1.54.1", features = ["net", "io-util", "time", "macros", "rt", "sync"] }
-keyring = { version = "3", features = ["apple-native"] }

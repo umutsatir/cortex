@@ -82,7 +82,7 @@ Show events from your calendars (read-only) in the Timebox, next to your timebox
 - **iCloud Calendar** — Apple ID + an [app-specific password](https://appleid.apple.com) (Sign-In and Security → App-Specific Passwords).
 - **Google Calendar** — sign in with Google in your browser. Several Google accounts can be connected.
 
-Per calendar you can toggle visibility and change the colour. Recurring events, time zones / DST and declined invitations (Google) are handled. Passwords and tokens are stored in the macOS Keychain, never in the app's local storage.
+Per calendar you can toggle visibility and change the colour. Recurring events, time zones / DST and declined invitations (Google) are handled. Passwords and tokens are stored in `secrets.json` in the app's data folder (readable only by your user), never in the webview's local storage. The macOS Keychain is not used because, without a Developer ID signature, it would ask for your login password after every update.
 
 All settings persist across sessions.
 
@@ -189,7 +189,7 @@ src-tauri/src/
 ├── caldav.rs             # iCloud CalDAV client
 ├── ical.rs               # iCalendar parsing + recurrence expansion
 ├── google.rs             # Google OAuth (loopback + PKCE) and Calendar API
-├── secrets.rs            # macOS Keychain access
+├── secrets.rs            # Credential store (app data dir, 0600)
 └── events.rs             # Shared event type
 ```
 

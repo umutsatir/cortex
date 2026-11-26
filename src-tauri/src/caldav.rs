@@ -1,4 +1,4 @@
-//! iCloud CalDAV (read-only). The app-specific password is kept in the Keychain.
+//! iCloud CalDAV (read-only). The app-specific password is kept in the secret store (secrets.rs).
 
 use chrono::{DateTime, Utc};
 use quick_xml::events::Event;

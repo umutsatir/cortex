@@ -14,7 +14,7 @@ export interface Calendar {
 }
 
 export interface CalendarAccount {
-  id: string;            // "apple:<email>" | "google:<email>" — also the Keychain entry
+  id: string;            // "apple:<email>" | "google:<email>" — also the secret store key
   provider: Provider;
   label: string;         // email
   status: 'ok' | 'needs_reauth' | 'error';
@@ -47,7 +47,7 @@ const errText = (e: unknown) => String(e).replace(/^Error:\s*/, '').replace(AUTH
 
 // Requests in flight, so overlapping triggers (focus, navigation, prefetch) share one fetch.
 const inFlight = new Map<string, Promise<void>>();
-// Password found in pre-0.2.1 localStorage, moved to the Keychain once after hydration.
+// Password found in pre-0.2.1 localStorage, moved to the native secret store once after hydration.
 let legacyApple: { email: string; password: string } | null = null;
 
 interface IntegrationStore {

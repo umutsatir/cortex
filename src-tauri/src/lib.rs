@@ -18,6 +18,11 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sql::Builder::default().build())
         .manage(google::TokenCache::default())
+        .setup(|app| {
+            use tauri::Manager;
+            secrets::init(app.path().app_data_dir()?);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             integration_forget,
             caldav::caldav_connect,

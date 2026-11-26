@@ -1,5 +1,5 @@
 //! Google Calendar (read-only) over OAuth 2.0 for installed apps:
-//! loopback redirect + PKCE. The refresh token lives in the Keychain; access tokens
+//! loopback redirect + PKCE. The refresh token lives in the secret store (secrets.rs); access tokens
 //! are only kept in memory.
 
 use std::collections::HashMap;
