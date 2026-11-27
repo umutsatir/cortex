@@ -5,6 +5,7 @@ import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
 import { Toolbar, TRAFFIC_LIGHTS_W } from '../ui/Toolbar';
 import { TaskItem } from '../brain-dump/TaskItem';
+import { RolloverBanner } from '../common/RolloverBanner';
 import { TaskInput } from '../brain-dump/TaskInput';
 
 export function TodayTaskList() {
@@ -40,11 +41,13 @@ export function TodayTaskList() {
         </div>
       )}
 
-      <TaskInput placeholder={t('Add to today…')} scheduledDate={today} />
+      <RolloverBanner className="mx-3 mt-3" />
+
+      <TaskInput placeholder={t('Add to today…')} scheduledDate={today} quickSource />
 
       <div
         ref={setNodeRef}
-        className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-2 transition-colors"
+        className="flex-1 overflow-y-auto px-3 pt-1 pb-3 flex flex-col gap-2 transition-colors"
         style={{ background: isOver ? 'var(--accent-soft)' : 'transparent' }}
       >
         <AnimatePresence initial={false}>

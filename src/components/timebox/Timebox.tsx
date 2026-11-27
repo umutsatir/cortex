@@ -15,6 +15,8 @@ import {
 } from '../../lib/time';
 import { TimeboxBlock } from './TimeboxBlock';
 import { Chevron, IconButton, PillButton, Toolbar } from '../ui/Toolbar';
+import { eventHatch } from '../ui/eventStyle';
+import { clearTimebox, planMyDay } from '../../lib/actions';
 import type { Task } from '../../types';
 
 type TimeboxItem = { kind: 'task'; task: Task } | { kind: 'event'; event: ColoredDayEvent };
@@ -143,6 +145,7 @@ export function Timebox() {
     s.tasks.filter((t) => t.timebox_start && t.scheduled_date === timeboxDate)
   ));
   const labels = useLabelStore((s) => s.labels);
+  const hasOpenBlocks = tasks.some((x) => !x.is_completed);
   const dayEvents = useDayEvents(timeboxDate);
   const allDayEvents = dayEvents.filter((e) => e.allDay);
   const { hasAccounts, calLoading, calIssue, ensureEvents } = useIntegrationStore(
@@ -248,7 +251,26 @@ export function Timebox() {
         >
           {dayNum}
         </span>
-        <span className="text-[14px] font-semibold tracking-[-0.01em]" style={{ color: 'var(--ink)' }}>{dayLabel}</span>
+        <span className="text-[14px] font-semibold tracking-[-0.01em] truncate" style={{ color: 'var(--ink)' }}>{dayLabel}</span>
+        <div className="ml-auto flex items-center gap-0.5 flex-shrink-0">
+          <IconButton onClick={() => { void planMyDay(timeboxDate); }} title={`${t('Plan my day')} (P)`} size={26}>
+            {/* Magic wand */}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M2.5 13.5l7-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M9.5 6.5l1.2-1.2" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+              <path d="M12 1.8v2.4M10.8 3h2.4M13.8 7v1.8M12.9 7.9h1.8M6.2 1.5v1.6M5.4 2.3H7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+          </IconButton>
+          {hasOpenBlocks && (
+            <IconButton onClick={() => { void clearTimebox(timeboxDate); }} title={t('Clear timebox')} size={26}>
+              {/* Eraser */}
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M9.2 2.8l4 4a1 1 0 010 1.4L8 13.4H4.6L2.8 11.6a1 1 0 010-1.4l5-5 1.4-2.4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+                <path d="M6 6.6l4.4 4.4M8 13.4h5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+            </IconButton>
+          )}
+        </div>
       </div>
 
       {/* All-day calendar events */}
@@ -261,9 +283,8 @@ export function Timebox() {
               className="max-w-full truncate px-1.5 py-0.5 text-[11px] font-medium"
               style={{
                 borderRadius: 'var(--radius-xs)',
-                background: `color-mix(in srgb, ${ev.color} 14%, var(--surface))`,
                 color: 'var(--ink)',
-                boxShadow: `inset 2px 0 0 ${ev.color}`,
+                ...eventHatch(ev.color),
               }}
             >
               {ev.title || t('(No title)')}
@@ -322,8 +343,7 @@ export function Timebox() {
                     width,
                     height,
                     borderRadius: 'var(--radius-md)',
-                    background: `color-mix(in srgb, ${ev.color} 12%, var(--surface))`,
-                    border: `1px solid color-mix(in srgb, ${ev.color} 30%, var(--surface))`,
+                    ...eventHatch(ev.color),
                   }}
                 >
                   <div className="text-[13px] font-semibold leading-[18px] truncate" style={{ color: 'var(--ink)' }}>

@@ -120,7 +120,29 @@ html, body, #root {
   background: var(--bg);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  /* WebKit (the macOS webview) needs the prefix, or dragging a card starts a text selection. */
+  -webkit-user-select: none;
   user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* A desktop app, not a web page: the window itself never scrolls or rubber-bands in any
+   direction; only panels that have more content scroll, and they don't hand the
+   overscroll on to the page. */
+html, body, #root {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+* { overscroll-behavior: contain; }
+
+/* Text fields stay selectable. */
+input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
+
+/* While a card is being dragged: no selection anywhere, a grabbing hand everywhere. */
+body.cx-dragging, body.cx-dragging * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  cursor: grabbing !important;
 }
 
 /* Times always use tabular numbers. */
@@ -148,6 +170,10 @@ html, body, #root {
 }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Draggable cards draw their focus ring inside, so scrolling lists never clip it. */
+[aria-roledescription="draggable"]:focus-visible { outline-offset: -2px; }
+/* Clicking a card to drag or open it isn't keyboard focus: no ring then. */
+[aria-roledescription="draggable"]:focus:not(:focus-visible) { outline: none; }
 input:focus-visible, textarea:focus-visible { outline: none; }
 
 /* ── Motion ──────────────────────────────────────────────────
@@ -196,6 +222,13 @@ input:focus-visible, textarea:focus-visible { outline: none; }
   transition: background-size .28s var(--ease-out), color .2s ease;
 }
 .cx-strike[data-done="true"] { background-size: 100% 1px; }
+
+/* A word recognised as a date/time/label fades into its color (only a `from`, so it
+   animates toward the span's own inline color). */
+@keyframes cx-token-in {
+  from { color: var(--ink); background-color: transparent; box-shadow: 0 0 0 2px transparent; }
+}
+.cx-token { animation: cx-token-in .32s var(--ease-out); }
 
 /* Soft pulse on the "now" dot. */
 @keyframes cx-pulse {

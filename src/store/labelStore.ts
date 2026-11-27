@@ -40,3 +40,13 @@ export function getLabelById(id: string | null): Label | null {
   if (!id) return null;
   return useLabelStore.getState().labels.find((l) => l.id === id) ?? null;
 }
+
+/** How a label is written after "#": lower case, spaces as dashes ("Deep work" → "deep-work"). */
+export function labelSlug(name: string): string {
+  return name.trim().toLocaleLowerCase('tr').replace(/\s+/g, '-');
+}
+
+export function findLabelBySlug(slug: string): Label | null {
+  const want = labelSlug(slug);
+  return useLabelStore.getState().labels.find((l) => labelSlug(l.name) === want) ?? null;
+}

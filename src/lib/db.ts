@@ -44,6 +44,8 @@ async function migrateSchema(db: Database): Promise<void> {
     ['priority', 'TEXT'],
     ['label', 'TEXT'],
     ['notes', 'TEXT'],
+    ['recurrence', 'TEXT'],
+    ['completed_at', 'TEXT'],
   ];
   for (const [col, type] of newCols) {
     try {
@@ -70,6 +72,8 @@ function rowToTask(row: RawRow): Task {
     priority: (row.priority as Task['priority']) ?? null,
     label: (row.label as string) ?? null,
     notes: (row.notes as string) ?? null,
+    recurrence: (row.recurrence as Task['recurrence']) ?? null,
+    completed_at: (row.completed_at as string) ?? null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
@@ -85,13 +89,14 @@ export async function dbCreateTask(task: Task): Promise<void> {
   const db = await getDb();
   await db.execute(
     `INSERT INTO tasks (id, title, is_completed, scheduled_date, timebox_start, timebox_end,
-      eisenhower_quadrant, due_date, estimated_minutes, priority, label, notes, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      eisenhower_quadrant, due_date, estimated_minutes, priority, label, notes, recurrence, completed_at,
+      created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
     [
       task.id, task.title, task.is_completed ? 1 : 0,
       task.scheduled_date, task.timebox_start, task.timebox_end,
       task.eisenhower_quadrant, task.due_date, task.estimated_minutes,
-      task.priority, task.label, task.notes,
+      task.priority, task.label, task.notes, task.recurrence, task.completed_at,
       task.created_at, task.updated_at,
     ]
   );
@@ -99,7 +104,7 @@ export async function dbCreateTask(task: Task): Promise<void> {
 
 const ALLOWED_UPDATE_FIELDS = [
   'title', 'is_completed', 'scheduled_date', 'timebox_start', 'timebox_end',
-  'eisenhower_quadrant', 'due_date', 'estimated_minutes', 'priority', 'label', 'notes', 'updated_at',
+  'eisenhower_quadrant', 'due_date', 'estimated_minutes', 'priority', 'label', 'notes', 'recurrence', 'completed_at', 'updated_at',
 ] as const;
 
 export async function dbUpdateTask(id: string, updates: TaskUpdate): Promise<void> {
@@ -116,6 +121,18 @@ export async function dbUpdateTask(id: string, updates: TaskUpdate): Promise<voi
     id,
     ...entries.map(([, v]) => (typeof v === 'boolean' ? (v ? 1 : 0) : v)),
   ];
+  await db.execute(`UPDATE tasks SET ${setClauses} WHERE id = $1`, values);
+}
+
+/** Writes every editable field of `task` back (used by undo). */
+export async function dbReplaceTask(task: Task): Promise<void> {
+  const { id, created_at: _c, ...rest } = task;
+  const db = await getDb();
+  const entries = Object.entries(rest).filter(([k]) =>
+    ALLOWED_UPDATE_FIELDS.includes(k as (typeof ALLOWED_UPDATE_FIELDS)[number])
+  );
+  const setClauses = entries.map(([key], i) => `${key} = $${i + 2}`).join(', ');
+  const values: unknown[] = [id, ...entries.map(([, v]) => (typeof v === 'boolean' ? (v ? 1 : 0) : v))];
   await db.execute(`UPDATE tasks SET ${setClauses} WHERE id = $1`, values);
 }
 

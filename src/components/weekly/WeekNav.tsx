@@ -5,7 +5,7 @@ import { useT } from '../../hooks/useT';
 import { useDateLocale } from '../../hooks/useDateLocale';
 import { SettingsButton } from '../layout/SettingsButton';
 import {
-  Chevron, IconButton, PanelToggle, PillButton, Toolbar, TRAFFIC_LIGHTS_W, ViewSwitcher,
+  Chevron, IconButton, PanelToggle, PillButton, SearchButton, StatsButton, Toolbar, TRAFFIC_LIGHTS_W, ViewSwitcher,
 } from '../ui/Toolbar';
 
 interface Props {
@@ -52,6 +52,8 @@ export function WeekNav({ onTodayClick }: Props) {
       <PillButton onClick={() => onTodayClick?.()} active={isCurrentWeek}>{t('Today')}</PillButton>
 
       <div className="ml-auto flex items-center gap-1.5">
+        <SearchButton />
+        <StatsButton />
         <ViewSwitcher />
         <PanelToggle side="right" />
         <SettingsButton />

@@ -28,11 +28,11 @@ export function BrainDump() {
         )}
       </Toolbar>
 
-      <TaskInput placeholder={t('Capture a thought…')} captureNewTaskShortcut />
+      <TaskInput placeholder={t('Capture a thought…')} captureNewTaskShortcut quickSource />
 
       <div
         ref={setNodeRef}
-        className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-2 transition-colors"
+        className="flex-1 overflow-y-auto px-3 pt-1 pb-3 flex flex-col gap-2 transition-colors"
         style={{ background: isOver ? 'var(--accent-soft)' : 'transparent' }}
       >
         <AnimatePresence initial={false}>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useId } from 'react';
 import appIcon from '../../assets/brand/cortex-app-icon.svg';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
@@ -61,6 +61,16 @@ const SECTIONS: SectionDef[] = [
     ),
   },
   {
+    id: 'planning',
+    labelKey: 'Planning',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M7 4v3l2 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     id: 'appearance',
     labelKey: 'Appearance',
     icon: (
@@ -105,14 +115,36 @@ const SECTIONS: SectionDef[] = [
   },
 ];
 
-function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
+function SettingRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
-      <span className="text-[13px]" style={{ color: 'var(--text-2)' }}>{label}</span>
+      <div className="min-w-0">
+        <div className="text-[13px]" style={{ color: 'var(--text-2)' }}>{label}</div>
+        {hint && <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-4)' }}>{hint}</div>}
+      </div>
       <div className="flex-shrink-0">{children}</div>
     </div>
   );
 }
+
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, h) => h);
+
+function HourSelect({ value, onChange, min = 0, max = 23 }: { value: number; onChange: (h: number) => void; min?: number; max?: number }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="h-7 pl-2 pr-1 text-[12px] font-medium tabular-nums outline-none cursor-pointer"
+      style={{ background: 'var(--surface-3)', color: 'var(--text-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}
+    >
+      {HOUR_OPTIONS.filter((h) => h >= min && h <= max).map((h) => (
+        <option key={h} value={h}>{`${String(h).padStart(2, '0')}:00`}</option>
+      ))}
+    </select>
+  );
+}
+
+const PILL_SPRING = { type: 'spring', stiffness: 520, damping: 38 } as const;
 
 function SegmentedControl<T>({
   value, onChange, options,
@@ -121,6 +153,8 @@ function SegmentedControl<T>({
   onChange: (v: T) => void;
   options: { value: T; label: string }[];
 }) {
+  // Each control needs its own layoutId so the pill only slides within it.
+  const id = useId();
   return (
     <div className="flex rounded-lg p-0.5 gap-0.5" style={{ background: 'var(--surface-3)' }}>
       {options.map((opt, i) => {
@@ -129,14 +163,18 @@ function SegmentedControl<T>({
           <button
             key={i}
             onClick={() => onChange(opt.value)}
-            className="px-3 py-1 rounded-md text-[12px] font-medium transition-all"
-            style={{
-              background: active ? 'var(--surface)' : 'transparent',
-              color: active ? 'var(--accent-hover)' : 'var(--ink-secondary)',
-              boxShadow: active ? 'var(--shadow-card), 0 0 0 1px var(--border)' : 'none',
-            }}
+            className="cx-press relative px-3 py-1 rounded-md text-[12px] font-medium transition-colors duration-200"
+            style={{ color: active ? 'var(--accent-hover)' : 'var(--ink-secondary)' }}
           >
-            {opt.label}
+            {active && (
+              <motion.span
+                layoutId={`seg-${id}`}
+                className="absolute inset-0 rounded-md z-0"
+                style={{ background: 'var(--surface)', boxShadow: 'var(--shadow-card), 0 0 0 1px var(--border)' }}
+                transition={PILL_SPRING}
+              />
+            )}
+            <span className="relative z-10">{opt.label}</span>
           </button>
         );
       })}
@@ -153,6 +191,7 @@ export function SettingsPanel({ onClose }: Props) {
   const { language, weekStartsOn, defaultView, timeFormat, dateFormat,
           setLanguage, setDefaultView, setTimeFormat, setDateFormat } = useGeneralStore();
   const setWeekStartsOn = useGeneralStore((s) => s.setWeekStartsOn);
+  const { workStart, workEnd, breakMinutes, setBreakMinutes, warmUp, setWarmUp, notifyEnabled, notifyLead, showMenuBar, setWorkHours, setNotifyEnabled, setNotifyLead, setShowMenuBar } = useGeneralStore();
   const [activeSection, setActiveSection] = useState('general');
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'none' | 'installing'>('idle');
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
@@ -241,12 +280,12 @@ export function SettingsPanel({ onClose }: Props) {
                   {active && (
                     <motion.span
                       layoutId="settings-nav-active"
-                      className="absolute inset-0 rounded-lg"
+                      className="absolute inset-0 rounded-lg z-0"
                       style={{ background: 'var(--accent-soft)' }}
                       transition={{ type: 'spring', stiffness: 520, damping: 40 }}
                     />
                   )}
-                  <span className="relative flex items-center gap-2.5">
+                  <span className="relative z-10 flex items-center gap-2.5">
                     {s.icon}
                     {t(s.labelKey)}
                   </span>
@@ -303,15 +342,21 @@ export function SettingsPanel({ onClose }: Props) {
                           <button
                             key={opt.value}
                             onClick={() => handleTheme(opt.value)}
-                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-medium transition-all"
-                            style={{
-                              background: active ? 'var(--surface)' : 'transparent',
-                              color: active ? 'var(--accent-hover)' : 'var(--ink-secondary)',
-                              boxShadow: active ? 'var(--shadow-card), 0 0 0 1px var(--border)' : 'none',
-                            }}
+                            className="cx-press relative flex-1 py-2.5 rounded-lg text-[13px] font-medium transition-colors duration-200"
+                            style={{ color: active ? 'var(--accent-hover)' : 'var(--ink-secondary)' }}
                           >
-                            {opt.icon}
-                            {t(opt.label)}
+                            {active && (
+                              <motion.span
+                                layoutId="theme-pill"
+                                className="absolute inset-0 rounded-lg z-0"
+                                style={{ background: 'var(--surface)', boxShadow: 'var(--shadow-card), 0 0 0 1px var(--border)' }}
+                                transition={PILL_SPRING}
+                              />
+                            )}
+                            <span className="relative z-10 flex items-center justify-center gap-2">
+                              {opt.icon}
+                              {t(opt.label)}
+                            </span>
                           </button>
                         );
                       })}
@@ -322,32 +367,64 @@ export function SettingsPanel({ onClose }: Props) {
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>{t('Accent color')}</p>
                     <div className="flex gap-4 flex-wrap">
-                      {ACCENT_PRESETS.map((preset) => {
+                      {ACCENT_PRESETS.map((preset, i) => {
                         const active = accent === preset.id;
                         return (
-                          <button
+                          <motion.button
                             key={preset.id}
                             onClick={() => handleAccent(preset.id)}
                             title={preset.label}
                             className="flex flex-col items-center gap-1.5 group"
+                            // Swatches arrive one after another when the tab opens.
+                            initial={{ opacity: 0, y: 8, scale: 0.6 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 520, damping: 26, delay: 0.04 + i * 0.035 }}
+                            whileTap={{ scale: 0.88 }}
                           >
-                            <span
-                              className="w-8 h-8 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
-                              style={{
-                                background: preset.color,
-                                boxShadow: active ? `0 0 0 2px var(--surface), 0 0 0 4px ${preset.color}` : 'none',
-                              }}
-                            >
+                            <span className="relative w-8 h-8 flex items-center justify-center">
                               {active && (
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                  <path d="M2.5 6l3 3 4-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
+                                // The selection ring slides to the new color and takes it on.
+                                <motion.span
+                                  layoutId="accent-ring"
+                                  className="absolute -inset-[4px] rounded-full"
+                                  initial={false}
+                                  animate={{ borderColor: preset.color }}
+                                  style={{ border: `2px solid ${preset.color}` }}
+                                  transition={{ type: 'spring', stiffness: 480, damping: 32 }}
+                                />
                               )}
+                              <span
+                                className="w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-200 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover:scale-110"
+                                style={{ background: preset.color }}
+                              >
+                                <AnimatePresence initial={false}>
+                                  {active && (
+                                    <motion.svg
+                                      key="check"
+                                      width="12" height="12" viewBox="0 0 12 12" fill="none"
+                                      initial={{ scale: 0, rotate: -30, opacity: 0 }}
+                                      animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                                      exit={{ scale: 0, opacity: 0, transition: { duration: 0.12 } }}
+                                      transition={{ type: 'spring', stiffness: 600, damping: 20, delay: 0.06 }}
+                                    >
+                                      <motion.path
+                                        d="M2.5 6l3 3 4-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                                        initial={{ pathLength: 0 }}
+                                        animate={{ pathLength: 1 }}
+                                        transition={{ duration: 0.22, delay: 0.1, ease: 'easeOut' }}
+                                      />
+                                    </motion.svg>
+                                  )}
+                                </AnimatePresence>
+                              </span>
                             </span>
-                            <span className="text-[10px]" style={{ color: active ? 'var(--accent-hover)' : 'var(--ink-secondary)', fontWeight: active ? 600 : 400 }}>
+                            <span
+                              className="text-[10px] transition-colors duration-200"
+                              style={{ color: active ? 'var(--accent-hover)' : 'var(--ink-secondary)', fontWeight: active ? 600 : 400 }}
+                            >
                               {preset.label}
                             </span>
-                          </button>
+                          </motion.button>
                         );
                       })}
                     </div>
@@ -394,8 +471,11 @@ export function SettingsPanel({ onClose }: Props) {
               {activeSection === 'shortcuts' && (
                 <div className="flex flex-col gap-1">
                   {([
-                    { key: 'C', description: t('New task') },
-                    { key: 'V', description: t('Toggle view (Week / Today)') },
+                    { key: '⌘K', description: t('Search and commands') },
+                    { key: '⌘Z', description: t('Undo') },
+                    { key: 'N', description: t('New task') },
+                    { key: 'P', description: t('Plan my day') },
+                    { key: 'V', description: t('Switch view (Week / Month / Focus)') },
                     { key: 'B', description: t('Toggle sidebar') },
                     { key: 'T', description: t('Toggle timebox') },
                     { key: ',', description: t('Open settings') },
@@ -418,6 +498,70 @@ export function SettingsPanel({ onClose }: Props) {
                   <p className="text-[11px] mt-3" style={{ color: 'var(--text-4)' }}>
                     {t('Shortcuts work when no input is focused.')}
                   </p>
+                </div>
+              )}
+
+              {activeSection === 'planning' && (
+                <div>
+                  <SettingRow label={t('Work hours')} hint={t('“Plan my day” fills free time inside these hours.')}>
+                    <div className="flex items-center gap-1.5">
+                      <HourSelect value={workStart / 60} max={22} onChange={(h) => setWorkHours(h * 60, Math.max(workEnd, (h + 1) * 60))} />
+                      <span className="text-[12px]" style={{ color: 'var(--text-4)' }}>–</span>
+                      <HourSelect value={Math.min(23, workEnd / 60)} min={workStart / 60 + 1} onChange={(h) => setWorkHours(workStart, h * 60)} />
+                    </div>
+                  </SettingRow>
+
+                  <SettingRow label={t('Break between tasks')} hint={t('“Plan my day” leaves this much free time between tasks.')}>
+                    <SegmentedControl<number>
+                      value={breakMinutes}
+                      onChange={setBreakMinutes}
+                      options={[
+                        { value: 0, label: t('None') },
+                        { value: 10, label: `10 ${t('min')}` },
+                        { value: 15, label: `15 ${t('min')}` },
+                        { value: 30, label: `30 ${t('min')}` },
+                      ]}
+                    />
+                  </SettingRow>
+
+                  <SettingRow label={t('Start with a warm-up')} hint={t('A short task (up to 30 min) first, then the most important one.')}>
+                    <SegmentedControl<boolean>
+                      value={warmUp}
+                      onChange={setWarmUp}
+                      options={[{ value: true, label: t('On') }, { value: false, label: t('Off') }]}
+                    />
+                  </SettingRow>
+
+                  <SettingRow label={t('Timebox reminders')} hint={t('A macOS notification before each timebox starts.')}>
+                    <SegmentedControl<boolean>
+                      value={notifyEnabled}
+                      onChange={setNotifyEnabled}
+                      options={[{ value: true, label: t('On') }, { value: false, label: t('Off') }]}
+                    />
+                  </SettingRow>
+
+                  {notifyEnabled && (
+                    <SettingRow label={t('Notify me')}>
+                      <SegmentedControl<number>
+                        value={notifyLead || 5}
+                        onChange={setNotifyLead}
+                        options={[
+                          { value: 5, label: `5 ${t('min')}` },
+                          { value: 10, label: `10 ${t('min')}` },
+                          { value: 15, label: `15 ${t('min')}` },
+                        ]}
+                      />
+                    </SettingRow>
+                  )}
+
+                  <SettingRow label={t('Show in menu bar')} hint={t('Shows the current or next timebox next to the clock.')}>
+                    <SegmentedControl<boolean>
+                      value={showMenuBar}
+                      onChange={setShowMenuBar}
+                      options={[{ value: true, label: t('On') }, { value: false, label: t('Off') }]}
+                    />
+                  </SettingRow>
+
                 </div>
               )}
 
@@ -445,7 +589,7 @@ export function SettingsPanel({ onClose }: Props) {
                     <SegmentedControl<AppView>
                       value={defaultView}
                       onChange={handleDefaultView}
-                      options={[{ value: 'main', label: t('Week') }, { value: 'today', label: t('Today') }]}
+                      options={[{ value: 'main', label: t('Week') }, { value: 'month', label: t('Month') }, { value: 'today', label: t('Focus') }]}
                     />
                   </SettingRow>
 

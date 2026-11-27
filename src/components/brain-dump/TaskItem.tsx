@@ -8,6 +8,8 @@ import { useLabelStore } from '../../store/labelStore';
 import { LabelPicker } from '../common/LabelPicker';
 import { PriorityPicker } from '../common/PriorityPicker';
 import type { Task } from '../../types';
+import { deleteWithUndo } from '../../lib/actions';
+import { useT } from '../../hooks/useT';
 
 function DueBadge({ dueDate }: { dueDate: string }) {
   const diff = differenceInCalendarDays(new Date(dueDate + 'T00:00:00'), new Date());
@@ -38,6 +40,10 @@ interface Props {
   onRemove?: () => void;
   /** Checkbox ring color; quadrants pass their own. */
   checkColor?: string;
+  /** Placed by a suggestion (Eisenhower), not by the user. */
+  auto?: boolean;
+  /** Which day the task is on, when the list mixes days (Eisenhower week / all). */
+  dateHint?: string;
 }
 
 /** The look of a task being dragged (DragOverlay). */
@@ -63,11 +69,11 @@ export function TaskDragCard({ title }: { title: string }) {
   );
 }
 
-export function TaskItem({ task, dragIdPrefix = '', onRemove, checkColor }: Props) {
-  const { toggleComplete, deleteTask, updateTask, selectTask } = useTaskStore(
+export function TaskItem({ task, dragIdPrefix = '', onRemove, checkColor, auto = false, dateHint }: Props) {
+  const t = useT();
+  const { toggleComplete, updateTask, selectTask } = useTaskStore(
     useShallow((s) => ({
       toggleComplete: s.toggleComplete,
-      deleteTask: s.deleteTask,
       updateTask: s.updateTask,
       selectTask: s.selectTask,
     }))
@@ -89,7 +95,7 @@ export function TaskItem({ task, dragIdPrefix = '', onRemove, checkColor }: Prop
   // The DragOverlay follows the pointer; the original stays put as a placeholder.
   const active = hovered && !isDragging;
 
-  const hasSubInfo = label || task.due_date || task.priority;
+  const hasSubInfo = label || task.due_date || task.priority || task.recurrence || auto || dateHint;
 
   return (
     <>
@@ -106,7 +112,7 @@ export function TaskItem({ task, dragIdPrefix = '', onRemove, checkColor }: Prop
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.14 } }}
         transition={{ type: 'spring', stiffness: 520, damping: 38, mass: 0.7 }}
-        className={`group relative flex items-start gap-2.5 px-3 py-2.5 cursor-grab active:cursor-grabbing ${isDragging ? '' : 'cx-lift'}`}
+        className={`group relative flex items-start gap-2.5 px-3 py-2.5 cursor-grab active:cursor-grabbing select-none touch-none ${isDragging ? '' : 'cx-lift'}`}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => { if (!showLabelPicker && !showPriorityPicker) setHovered(false); }}
         {...attributes}
@@ -149,8 +155,8 @@ export function TaskItem({ task, dragIdPrefix = '', onRemove, checkColor }: Prop
           {/* Title row */}
           <div className="flex items-center justify-between gap-2">
             <span
-              className="text-[14px] leading-5 flex-1 min-w-0 break-words transition-colors duration-200"
-              style={{ color: task.is_completed ? 'var(--ink-secondary)' : 'var(--ink)', cursor: 'pointer' }}
+              className="text-[14px] leading-5 flex-1 min-w-0 break-words transition-colors duration-200 cursor-pointer"
+              style={{ color: task.is_completed ? 'var(--ink-secondary)' : 'var(--ink)' }}
               onClick={() => selectTask(task.id)}
             >
               <span
@@ -182,7 +188,7 @@ export function TaskItem({ task, dragIdPrefix = '', onRemove, checkColor }: Prop
                 }}
                 title={onRemove ? 'Remove' : 'Delete'}
                 onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => { e.stopPropagation(); onRemove ? onRemove() : deleteTask(task.id); }}
+                onClick={(e) => { e.stopPropagation(); onRemove ? onRemove() : void deleteWithUndo(task.id); }}
               >
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
                   <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -203,6 +209,9 @@ export function TaskItem({ task, dragIdPrefix = '', onRemove, checkColor }: Prop
                 style={{ opacity: active ? 0 : 1, translate: active ? '0 2px' : '0 0', pointerEvents: active ? 'none' : undefined }}
                 aria-hidden={active}
               >
+                {dateHint && (
+                  <span className="text-[11px] font-medium" style={{ color: 'var(--ink-secondary)' }}>{dateHint}</span>
+                )}
                 {label && (
                   <span className="flex items-center gap-1 text-[11px]" style={{ color: label.color }}>
                     <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: label.color }} />
@@ -215,6 +224,26 @@ export function TaskItem({ task, dragIdPrefix = '', onRemove, checkColor }: Prop
                   </svg>
                 )}
                 {task.due_date && <DueBadge dueDate={task.due_date} />}
+                {auto && (
+                  <span
+                    className="flex items-center gap-1 text-[11px] font-medium"
+                    style={{ color: 'var(--ink-secondary)' }}
+                    title={t('Placed automatically from priority and due date. Drag it to keep it somewhere.')}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 1.5l1.6 4.9L14.5 8l-4.9 1.6L8 14.5l-1.6-4.9L1.5 8l4.9-1.6z" fill="currentColor" />
+                    </svg>
+                    {t('Auto')}
+                  </span>
+                )}
+                {task.recurrence && (
+                  <span className="flex items-center" style={{ color: 'var(--ink-secondary)' }} title={task.recurrence}>
+                    <svg width="11" height="11" viewBox="0 0 10 10" fill="none">
+                      <path d="M8.5 4A3.6 3.6 0 0 0 2 3M1.5 6A3.6 3.6 0 0 0 8 7" stroke="currentColor" strokeLinecap="round" />
+                      <path d="M2 1v2h2M8 9V7H6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                )}
               </div>
 
               <div

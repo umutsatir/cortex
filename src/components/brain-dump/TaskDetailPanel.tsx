@@ -9,7 +9,8 @@ import { useT } from '../../hooks/useT';
 import { formatTimeStr } from '../timebox/Timebox';
 import { LabelPicker } from '../common/LabelPicker';
 import { PriorityPicker } from '../common/PriorityPicker';
-import type { Priority } from '../../types';
+import type { Priority, Recurrence } from '../../types';
+import { deleteWithUndo } from '../../lib/actions';
 
 function parseEstimated(val: string): number | null {
   const v = val.trim().toLowerCase();
@@ -55,12 +56,11 @@ function DetailRow({ icon, label, children }: RowProps) {
 }
 
 export function TaskDetailPanel() {
-  const { selectedTaskId, tasks, updateTask, deleteTask, selectTask } = useTaskStore(
+  const { selectedTaskId, tasks, updateTask, selectTask } = useTaskStore(
     useShallow((s) => ({
       selectedTaskId: s.selectedTaskId,
       tasks: s.tasks,
       updateTask: s.updateTask,
-      deleteTask: s.deleteTask,
       selectTask: s.selectTask,
     }))
   );
@@ -182,7 +182,7 @@ export function TaskDetailPanel() {
               style={{ color: 'var(--text-4)' }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--danger)'; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-4)'; }}
-              onClick={() => deleteTask(task.id)}
+              onClick={() => { void deleteWithUndo(task.id); }}
               title="Delete"
             >
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -288,6 +288,36 @@ export function TaskDetailPanel() {
                       }}
                     >
                       {t(cfg.labelKey)}
+                    </button>
+                  );
+                })}
+              </div>
+            </DetailRow>
+
+            {/* Repeat */}
+            <DetailRow
+              icon={<svg width="13" height="13" viewBox="0 0 10 10" fill="none"><path d="M8.5 4A3.6 3.6 0 0 0 2 3M1.5 6A3.6 3.6 0 0 0 8 7" stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" /><path d="M2 1v2h2M8 9V7H6" stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+              label={t('Repeat')}
+            >
+              <div className="flex gap-1.5 flex-wrap">
+                {([null, 'daily', 'weekdays', 'weekly'] as (Recurrence | null)[]).map((r) => {
+                  const active = task.recurrence === r;
+                  return (
+                    <button
+                      key={r ?? 'none'}
+                      onClick={() => updateTask(task.id, {
+                        recurrence: r,
+                        // A repeating task needs a day to start from.
+                        ...(r && !task.scheduled_date ? { scheduled_date: format(new Date(), 'yyyy-MM-dd') } : {}),
+                      })}
+                      className="cx-press px-2 py-0.5 rounded-full text-[11px] font-medium"
+                      style={{
+                        background: active ? 'var(--accent-soft)' : 'var(--surface-2)',
+                        color: active ? 'var(--accent-hover)' : 'var(--text-4)',
+                        border: `1px solid ${active ? 'var(--accent-line)' : 'var(--border)'}`,
+                      }}
+                    >
+                      {t(r === null ? 'Never' : r === 'daily' ? 'Every day' : r === 'weekdays' ? 'Weekdays' : 'Every week')}
                     </button>
                   );
                 })}

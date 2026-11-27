@@ -7,12 +7,64 @@ import { useTaskStore } from '../../store/taskStore';
 import { useT } from '../../hooks/useT';
 import { useDateLocale } from '../../hooks/useDateLocale';
 import { TaskItem } from '../brain-dump/TaskItem';
+import { useDayEvents, type ColoredDayEvent } from '../../hooks/useDayEvents';
+import { useGeneralStore } from '../../store/generalStore';
+import { eventHatch } from '../ui/eventStyle';
+import { formatTimeStr } from '../timebox/Timebox';
+import { minutesToTime } from '../../lib/time';
+import { addTaskFromText, parseInput } from '../../lib/actions';
+import { ParsePreview } from '../common/ParsePreview';
+import { SmartInput } from '../common/SmartInput';
+
+const EVENTS_SHOWN = 3;
+
+/** The day's calendar events, compact and hatched like in the timebox. */
+function DayEvents({ events }: { events: ColoredDayEvent[] }) {
+  const [open, setOpen] = useState(false);
+  const timeFormat = useGeneralStore((s) => s.timeFormat);
+  const language = useGeneralStore((s) => s.language);
+  const t = useT();
+  const shown = open ? events : events.slice(0, EVENTS_SHOWN);
+  const hidden = events.length - shown.length;
+
+  return (
+    <div className="flex flex-col gap-1">
+      {shown.map((ev) => {
+        const time = ev.allDay || ev.continuesBefore ? null : formatTimeStr(minutesToTime(ev.startMin), timeFormat, language);
+        return (
+          <div
+            key={ev.key}
+            title={`${ev.title || t('(No title)')}${time ? `\n${time}` : ''}`}
+            className="cx-rise-in flex items-center gap-1.5 h-6 px-2 text-[12px] leading-4 min-w-0"
+            style={{ borderRadius: 'var(--radius-xs)', ...eventHatch(ev.color) }}
+          >
+            {time && (
+              <span className="flex-shrink-0 font-medium tabular-nums" style={{ color: `color-mix(in srgb, ${ev.color} 70%, var(--ink))` }}>
+                {time}
+              </span>
+            )}
+            <span className="truncate font-medium" style={{ color: 'var(--ink-body)' }}>{ev.title || t('(No title)')}</span>
+          </div>
+        );
+      })}
+      {(hidden > 0 || open) && events.length > EVENTS_SHOWN && (
+        <button
+          className="cx-press self-start px-1.5 h-5 text-[11px] font-medium hover:text-[var(--ink)]"
+          style={{ color: 'var(--ink-secondary)', borderRadius: 'var(--radius-xs)' }}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? t('Show less') : `+${hidden} ${t('more')}`}
+        </button>
+      )}
+    </div>
+  );
+}
 
 function InlineAdd({ dateStr }: { dateStr: string }) {
   const [active, setActive] = useState(false);
   const [value, setValue] = useState('');
-  const addTask = useTaskStore((s) => s.addTask);
   const inputRef = useRef<HTMLInputElement>(null);
+  const parsed = value.trim() ? parseInput(value) : null;
   const t = useT();
 
   if (!active) {
@@ -32,21 +84,20 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
 
   return (
     <div
-      className="cx-pop-in flex items-center h-9 px-2.5"
+      className="cx-pop-in flex flex-col justify-center min-h-9 px-2.5 py-1.5"
       style={{ background: 'var(--surface)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', boxShadow: '0 0 0 3px var(--accent-soft)' }}
     >
-      <input
+      <SmartInput
         ref={inputRef}
         autoFocus
-        className="w-full text-[13px] bg-transparent outline-none placeholder:text-[var(--ink-secondary)]"
-        style={{ color: 'var(--ink)' }}
-        placeholder={t('Task name…')}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        parsed={parsed}
+        onChange={setValue}
+        placeholder={t('Task name…')}
+        className="text-[13px]"
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
-            const title = value.trim();
-            if (title) addTask(title, { scheduled_date: dateStr });
+            void addTaskFromText(value, { scheduled_date: dateStr });
             setValue('');
             setActive(false);
           }
@@ -60,6 +111,7 @@ function InlineAdd({ dateStr }: { dateStr: string }) {
           setActive(false);
         }}
       />
+      <ParsePreview parsed={parsed} compact />
     </div>
   );
 }
@@ -78,6 +130,7 @@ export function DayColumn({ date, last = false }: Props) {
     s.tasks.filter((task) => task.scheduled_date === dateStr)
   ));
 
+  const events = useDayEvents(dateStr);
   const { setNodeRef, isOver } = useDroppable({ id: `day__${dateStr}` });
   const doneCount = tasks.filter((task) => task.is_completed).length;
 
@@ -129,12 +182,13 @@ export function DayColumn({ date, last = false }: Props) {
           boxShadow: isOver ? 'inset 0 0 0 1.5px var(--accent)' : undefined,
         }}
       >
+        {events.length > 0 && <DayEvents events={events} />}
         <AnimatePresence initial={false}>
           {tasks.map((task) => (
             <TaskItem key={task.id} task={task} />
           ))}
         </AnimatePresence>
-        <div className={`transition-opacity duration-200 ${tasks.length ? 'opacity-0 group-hover/day:opacity-100 focus-within:opacity-100' : 'opacity-60 group-hover/day:opacity-100'}`}>
+        <div className={`transition-opacity duration-200 ${tasks.length || events.length ? 'opacity-0 group-hover/day:opacity-100 focus-within:opacity-100' : 'opacity-60 group-hover/day:opacity-100'}`}>
           <InlineAdd dateStr={dateStr} />
         </div>
       </div>

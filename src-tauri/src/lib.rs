@@ -1,4 +1,6 @@
 mod caldav;
+#[cfg(desktop)]
+mod desktop;
 mod events;
 mod google;
 mod ical;
@@ -17,10 +19,13 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sql::Builder::default().build())
+        .plugin(tauri_plugin_notification::init())
         .manage(google::TokenCache::default())
         .setup(|app| {
             use tauri::Manager;
             secrets::init(app.path().app_data_dir()?);
+            #[cfg(desktop)]
+            desktop::setup(app)?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -35,6 +40,7 @@ pub fn run() {
             google::google_list_calendars,
             google::google_get_events,
             google::google_disconnect,
+            desktop::tray_update,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

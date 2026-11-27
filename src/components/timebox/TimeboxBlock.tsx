@@ -73,7 +73,8 @@ export function TimeboxBlock({ task, color, lang = 'en' }: Props) {
         border: `1px solid ${completedStyle.border}`,
         borderRadius: 'var(--radius-md)',
       }}
-      className="cx-lift cx-rise-in relative px-3 py-1.5 cursor-grab hover:shadow-[var(--shadow-hover)] active:cursor-grabbing flex flex-col gap-0.5 overflow-hidden select-none group/block"
+      className="cx-lift cx-rise-in relative px-3 py-1.5 cursor-grab hover:shadow-[var(--shadow-hover)] active:cursor-grabbing flex flex-col gap-0.5 overflow-hidden select-none touch-none group/block"
+      onDragStart={(e) => e.preventDefault()}
       {...attributes}
       {...listeners}
     >

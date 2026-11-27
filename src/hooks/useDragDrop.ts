@@ -3,6 +3,8 @@ import { format } from 'date-fns'; // used by todayStr()
 import { useTaskStore } from '../store/taskStore';
 import { minutesToTime, timeToMinutes } from '../lib/time';
 import type { EisenhowerQuadrant } from '../types';
+import { useGeneralStore } from '../store/generalStore';
+import { dateOnDrop } from '../lib/eisenhower';
 
 const todayStr = () => format(new Date(), 'yyyy-MM-dd');
 
@@ -73,8 +75,11 @@ export function useDragDrop() {
 
     if (overId.startsWith('eisenhower__')) {
       const quadrant = overId.slice(12) as EisenhowerQuadrant;
+      const task = useTaskStore.getState().tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      const { matrixScope, weekStartsOn } = useGeneralStore.getState();
       updateTask(taskId, {
-        scheduled_date: todayStr(),
+        scheduled_date: dateOnDrop(task, matrixScope, todayStr(), weekStartsOn),
         eisenhower_quadrant: quadrant,
       });
       return;

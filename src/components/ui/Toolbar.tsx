@@ -117,14 +117,15 @@ export function Chevron({ dir }: { dir: 'left' | 'right' }) {
   );
 }
 
-/** Week / Today segmented control. */
+/** Week / Month / Focus segmented control. */
 export function ViewSwitcher() {
   const currentView = useTaskStore((s) => s.currentView);
   const setView = useTaskStore((s) => s.setView);
   const t = useT();
   const items = [
     { id: 'main' as const, label: t('Week') },
-    { id: 'today' as const, label: t('Today') },
+    { id: 'month' as const, label: t('Month') },
+    { id: 'today' as const, label: t('Focus') },
   ];
   return (
     <div
@@ -147,7 +148,7 @@ export function ViewSwitcher() {
               // Slides between the two tabs.
               <motion.span
                 layoutId="view-switcher-pill"
-                className="absolute inset-0"
+                className="absolute inset-0 z-0"
                 style={{
                   borderRadius: 'var(--radius-xs)',
                   background: 'var(--surface)',
@@ -156,7 +157,7 @@ export function ViewSwitcher() {
                 transition={{ type: 'spring', stiffness: 520, damping: 38 }}
               />
             )}
-            <span className="relative">{it.label}</span>
+            <span className="relative z-10">{it.label}</span>
           </button>
         );
       })}
@@ -171,6 +172,34 @@ export function PanelToggle({ side }: { side: 'left' | 'right' }) {
   return (
     <IconButton onClick={toggle} active={shown} title={side === 'left' ? 'Toggle sidebar (B)' : 'Toggle timebox (T)'}>
       <PanelIcon side={side} open={shown} />
+    </IconButton>
+  );
+}
+
+/** Opens the stats dialog (rendered by AppShell). */
+export function StatsButton() {
+  const t = useT();
+  return (
+    <IconButton onClick={() => window.dispatchEvent(new Event('cortex:open-stats'))} title={t('Stats')}>
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+        <path d="M3 13.5V9M8 13.5V3M13 13.5V6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    </IconButton>
+  );
+}
+
+/** Opens the command palette (⌘K). */
+export function SearchButton() {
+  const t = useT();
+  return (
+    <IconButton
+      onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+      title={`${t('Search')} (⌘K)`}
+    >
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+        <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M10.4 10.4L13.5 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
     </IconButton>
   );
 }

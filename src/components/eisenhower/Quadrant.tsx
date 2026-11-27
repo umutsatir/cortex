@@ -1,6 +1,7 @@
 import { useDroppable } from '@dnd-kit/core';
 import { AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '../../store/taskStore';
+import { useGeneralStore } from '../../store/generalStore';
 import { useT } from '../../hooks/useT';
 import { TaskItem } from '../brain-dump/TaskItem';
 import type { EisenhowerQuadrant, Task } from '../../types';
@@ -17,12 +18,17 @@ const CONFIGS: Record<EisenhowerQuadrant, { label: string; sublabel: string; tok
 interface Props {
   quadrant: EisenhowerQuadrant;
   tasks: Task[];
+  /** Tasks shown here as a suggestion, not a saved choice. */
+  autoIds: Set<string>;
+  /** Day label shown on each card (week / all scopes). */
+  dateHint?: (task: Task) => string;
 }
 
-export function Quadrant({ quadrant, tasks }: Props) {
+export function Quadrant({ quadrant, tasks, autoIds, dateHint }: Props) {
   const config = CONFIGS[quadrant];
   const { setNodeRef, isOver } = useDroppable({ id: `eisenhower__${quadrant}` });
   const updateTask = useTaskStore((s) => s.updateTask);
+  const hideSuggestion = useGeneralStore((s) => s.hideSuggestion);
   const t = useT();
   const q = `var(--${config.token})`;
 
@@ -54,7 +60,7 @@ export function Quadrant({ quadrant, tasks }: Props) {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-2 flex flex-col gap-1.5 min-h-[60px]">
+      <div className="flex-1 overflow-y-auto px-2 pt-1 pb-2 flex flex-col gap-1.5 min-h-[60px]">
         <AnimatePresence initial={false}>
           {tasks.map((task) => (
             <TaskItem
@@ -62,7 +68,9 @@ export function Quadrant({ quadrant, tasks }: Props) {
               task={task}
               dragIdPrefix="eis::"
               checkColor={q}
-              onRemove={() => updateTask(task.id, { eisenhower_quadrant: null })}
+              auto={autoIds.has(task.id)}
+              dateHint={dateHint?.(task)}
+              onRemove={() => (autoIds.has(task.id) ? hideSuggestion(task.id) : updateTask(task.id, { eisenhower_quadrant: null }))}
             />
           ))}
         </AnimatePresence>

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { addDays, differenceInCalendarDays } from 'date-fns';
 import { useTaskStore } from '../../store/taskStore';
+import { RolloverBanner } from '../common/RolloverBanner';
 import { WeekNav } from './WeekNav';
 import { DayColumn } from './DayColumn';
 
@@ -36,6 +37,7 @@ export function WeeklyTimeline() {
   return (
     <div className="flex flex-col flex-1 min-w-0" style={{ background: 'var(--surface)' }}>
       <WeekNav onTodayClick={handleScrollToToday} />
+      <RolloverBanner className="mx-4 mt-3 -mb-1" />
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden p-4">
         <motion.div
           key={weekKey}
