@@ -36,6 +36,9 @@ jobs:
         id: changelog
         run: |
           VERSION=$(python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['version'])")
+          # Notes come from this version's section of CHANGELOG.md (English, then Turkish);
+          # without one, fall back to the commit subjects since the previous tag.
+          SECTION=$(awk -v v="## v${VERSION} " 'index($0, v) == 1 {on=1; next} /^## v/ {on=0} on' CHANGELOG.md)
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
             COMMITS=$(git log --pretty="- %s" "${PREV_TAG}..HEAD" --no-merges \
@@ -47,7 +50,9 @@ jobs:
             echo "body<<RELEASE_EOF"
             echo "## What's new in v${VERSION}"
             echo ""
-            if [ -n "$COMMITS" ]; then
+            if [ -n "$(echo "$SECTION" | tr -d '[:space:]')" ]; then
+              echo "$SECTION"
+            elif [ -n "$COMMITS" ]; then
               echo "$COMMITS"
             else
               echo "- Bug fixes and improvements"
@@ -101,11 +106,15 @@ jobs:
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           python3 -c "
-          import json
+          import json, re
           sig = open('${TAR_GZ}.sig').read().strip()
+          # The updater shows the English half of this version's CHANGELOG section.
+          log = open('CHANGELOG.md').read()
+          m = re.search(r'^## v${VERSION} .*?\n(.*?)(?=^## v|\Z)', log, re.S | re.M)
+          notes = m.group(1).split('\n---\n')[0].strip() if m else ''
           data = {
             'version': '${VERSION}',
-            'notes': '',
+            'notes': notes,
             'pub_date': '${PUB_DATE}',
             'platforms': {
               'darwin-aarch64': {
