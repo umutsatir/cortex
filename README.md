@@ -9,46 +9,69 @@ A focused daily planner built as a native macOS desktop app. Cortex helps you ca
 
 ## Features
 
+### Quick add in plain language
+Press **N** (or click the add box in the sidebar) and the box grows into the middle of the screen. Type the task the way you'd say it; Cortex picks out the details, colours them as you type and shows them as chips underneath:
+
+```
+Call Ali tomorrow 10.30pm 45m #work p1
+Spor her gün akşam 7
+Rapor haftaya salı 2 saat !yüksek
+```
+
+| What | Examples |
+|---|---|
+| Day | `today`, `tomorrow`, `friday`, `next friday`, `in 3 days`, `next week`, `3 dec`, `12.05` · `bugün`, `yarın`, `cuma`, `haftaya salı`, `3 gün sonra`, `gelecek ay` |
+| Time | `14:00`, `14.30`, `3pm`, `10.30pm`, `at 9` · `saat 3`, `sabah 9`, `akşam 8`, `gece 11` |
+| Duration | `45m`, `1h30m`, `1.5h` · `45dk`, `2 saat` |
+| Priority | `p1` `p2` `p3`, `!high`, `!!`, `!yüksek` |
+| Label | `#work` — typing `#` lists your labels; a new name creates a label |
+| Repeat | `every day`, `weekdays`, `every week`, `every monday` · `her gün`, `hafta içi`, `her hafta` |
+
+A time puts the task straight into the timebox.
+
 ### Brain Dump
-Capture everything on your mind without worrying about where it belongs. The Brain Dump sidebar is a frictionless inbox: type a task, hit Enter, and it lands in your backlog. From there you can drag it anywhere — a day column, an Eisenhower quadrant, or a timebox slot.
+A frictionless inbox for everything on your mind. From there, drag a task onto a day, a quadrant or a timebox slot.
 
-### Weekly Timeline
-A horizontal 7-day view with a column per day. Drag tasks from the Brain Dump onto any day. Click **Focus** on today's header to switch to the Today view. Navigate weeks with the prev/next arrows, or jump back to the current week with the **Today** button.
+### Week, Month and Focus views
+- **Week** — a column per day, with that day's calendar events at the top. Drag tasks between days.
+- **Month** — the whole month at a glance: planned tasks, calendar events and **due dates** (🚩) on each day, with a done counter. Click a day to show it in the timebox, double-click to open its week.
+- **Focus** — today's list, the Eisenhower matrix and the timebox side by side.
 
-### Today / Focus View
-Three panels side by side:
-- **Task list** (left) — all of today's tasks. Type to add, drag to organise.
-- **Eisenhower Matrix** (centre) — four quadrants (Do First, Schedule, Delegate, Eliminate) that help you triage by urgency and importance. Drag any task from the list into a quadrant.
-- **Timebox** (right) — a time-grid from 06:00 to 24:00 with 15-minute resolution. Drag tasks onto slots to schedule them. Resize blocks by dragging their bottom edge.
+Switch with the segmented control or `V`.
+
+### Plan my day
+The wand in the timebox fills the day's unscheduled tasks into free time between calendar events and existing blocks, inside your work hours:
+- higher priority first, and within a priority the **shorter task first**;
+- a **break** between tasks and around events (30 min by default);
+- optionally a short **warm-up** task (≤ 30 min) before the most important one.
+
+The eraser next to it empties the day's timebox again so you can re-plan. Both undo in one step.
 
 ### Eisenhower Matrix
-- **Do First** — Urgent & Important
-- **Schedule** — Important, Not Urgent
-- **Delegate** — Urgent, Not Important
-- **Eliminate** — Neither
-
-Dropping a task into a quadrant creates a copy inside the matrix. The ✕ button on a matrix card removes it from the quadrant only.
+Do First · Schedule · Delegate · Eliminate, for **Today**, **This week** (default) or **All** open tasks.
+Tasks you haven't sorted are placed automatically from their priority and due date (marked *Auto*) — important = high/medium priority, urgent = due by tomorrow; tasks with neither aren't guessed. Dragging a card makes its place permanent; the eraser clears the whole matrix.
 
 ### Timebox
-- Drag any task from Brain Dump or Today list onto a time slot — snaps to **15-minute intervals**.
-- Blocks show the task title and time range.
-- Resize a block by dragging its bottom handle (also snaps to 15 min).
-- The current-time indicator (red line) auto-scrolls into view on open.
-- ✕ on a block removes it from the timebox only.
-- Supports a separate date per-day; navigate with prev/next arrows or jump to Today.
+A 06:00–24:00 grid with 15-minute slots. Drag tasks in, resize blocks from their bottom edge, see the current time. Calendar events are hatched so they never look like tasks; overlapping items sit side by side.
+
+### Repeating tasks
+Set *Repeat* (every day, weekdays, every week) in the task panel or type it. Checking one off creates the next occurrence.
+
+### Never lose a task
+- **Unfinished tasks** from earlier days are offered to move to today, once a day.
+- **Undo** (`⌘Z`) reverts adds, edits, moves, completions and deletes; batch actions undo in one step.
+
+### Command palette
+`⌘K` searches tasks (accent-insensitive) and runs commands; type a day (`friday`, `3.12`) to jump to it.
+
+### Stats
+Today's done / planned, time blocked vs. estimated, your streak, a 7-day chart and how your estimates compare with how long tasks actually took.
+
+### Reminders and menu bar
+A macOS notification before each timebox starts, and the current or next block next to the clock in the menu bar. Both can be switched off separately.
 
 ### Task Detail Panel
-Click any task title to open a slide-in detail panel:
-- Edit title inline
-- Set a due date displayed in your preferred date format with an overdue/upcoming badge
-- Log estimated time (`1h 30m`, `45m`, `2h`)
-- Assign priority (Low / Medium / High)
-- Tag with a colour label (create labels on the fly)
-- Write free-form notes
-- See which timebox slot the task occupies
-
-### Labels
-Type a label name in the label picker, pick a colour from the preset swatches, and hit **Create**. Labels appear as coloured dots on task cards and influence the colour of timebox blocks.
+Click a task title: edit the title, due date, estimate (`1h 30m`), priority, label, repeat and notes.
 
 ---
 
@@ -61,7 +84,7 @@ Open settings via the **⚙** icon (or press `,`).
 |---|---|---|
 | Language | English / Türkçe | English |
 | Start of week | Monday / Sunday | Monday |
-| Default view | Week / Today | Week |
+| Default view | Week / Month / Focus | Week |
 | Time format | 24h / 12h | 24h |
 | Date format | DD/MM/YYYY / MM/DD/YYYY / YYYY-MM-DD | DD/MM/YYYY |
 
@@ -70,6 +93,15 @@ Open settings via the **⚙** icon (or press `,`).
 |---|---|---|
 | Theme | System / Light / Dark | System |
 | Accent colour | Indigo, Blue, Cyan, Emerald, Rose, Orange, Pink, Slate | Indigo |
+
+### Planning
+| Setting | Options | Default |
+|---|---|---|
+| Work hours | 00:00–23:00 | 09:00–18:00 |
+| Break between tasks | None / 10 / 15 / 30 min | 30 min |
+| Start with a warm-up | On / Off | On |
+| Timebox reminders | On / Off, 5 / 10 / 15 min before | On, 5 min |
+| Show in menu bar | On / Off | On |
 
 ### Shortcuts
 Overview of all single-key shortcuts (see table below).
@@ -92,14 +124,17 @@ All settings persist across sessions.
 
 | Key | Action |
 |---|---|
-| `C` | New task (focuses the Brain Dump input) |
-| `V` | Toggle between Week and Today view |
+| `N` | New task (the add box grows into the middle) |
+| `⌘K` | Search and commands |
+| `⌘Z` | Undo |
+| `P` | Plan my day |
+| `V` | Switch view (Week / Month / Focus) |
 | `B` | Toggle Brain Dump sidebar |
 | `T` | Toggle Timebox panel |
 | `,` | Open settings |
-| `Esc` | Close detail panel / settings / blur input |
+| `Esc` | Close panel / overlay |
 
-> Shortcuts fire only when no text input is focused.
+> Single-key shortcuts fire only when no text input is focused.
 
 ---
 
@@ -123,8 +158,9 @@ This is expected for apps not signed with an Apple Developer certificate.
 
 | Source | Valid Drop Targets |
 |---|---|
-| Brain Dump task | Day column, Eisenhower quadrant, Timebox slot, Brain Dump (unschedule) |
-| Today list task | Eisenhower quadrant, Timebox slot |
+| Brain Dump task | Day column, month day, Eisenhower quadrant, Timebox slot, Brain Dump (unschedule) |
+| Month day task | Another month day, Timebox slot, Brain Dump |
+| Focus list task | Eisenhower quadrant, Timebox slot |
 | Eisenhower card (`eis::`) | Other Eisenhower quadrants only |
 | Timebox block (`tb::`) | Other Timebox slots only |
 
@@ -154,9 +190,11 @@ This is expected for apps not signed with an Apple Developer certificate.
 src/
 ├── components/
 │   ├── brain-dump/       # BrainDump, TaskItem, TaskInput, TaskDetailPanel
-│   ├── common/           # LabelPicker, PriorityPicker
+│   ├── common/           # CommandPalette, SmartInput, ParsePreview, StatsDialog, Toaster, RolloverBanner, pickers
 │   ├── eisenhower/       # EisenhowerMatrix, Quadrant
-│   ├── layout/           # AppShell, Header, SettingsButton
+│   ├── layout/           # AppShell, SettingsButton
+│   ├── monthly/          # MonthView
+│   ├── quick/            # QuickOverlay (the N add box)
 │   ├── settings/         # SettingsPanel (modal), IntegrationsSection
 │   ├── timebox/          # Timebox, TimeboxBlock, TimeSlot
 │   ├── today/            # TodayFocus, TodayTaskList
@@ -164,6 +202,7 @@ src/
 │   └── weekly/           # WeeklyTimeline, WeekNav, DayColumn
 ├── hooks/
 │   ├── useDateLocale.ts  # Returns date-fns locale based on language setting
+│   ├── useBackground.ts  # Timebox reminders + menu bar status
 │   ├── useDayEvents.ts   # Calendar events for one day (all accounts)
 │   ├── useDragDrop.ts    # Centralised drag-end handler
 │   ├── useIsDark.ts      # Reactive dark-mode detector
@@ -172,16 +211,23 @@ src/
 ├── i18n/
 │   └── index.ts          # EN / TR translation dictionaries
 ├── store/
-│   ├── generalStore.ts   # Language, week start, default view, time/date format
+│   ├── generalStore.ts   # Language, week start, views, planning and reminder settings
 │   ├── integrationStore.ts # Calendar accounts, calendars, cached events per month
 │   ├── labelStore.ts     # User-defined labels
-│   ├── taskStore.ts      # Tasks, view state, navigation, today refresh
+│   ├── quickStore.ts     # The N add box
+│   ├── toastStore.ts     # Toasts (with Undo)
+│   ├── taskStore.ts      # Tasks, undo history, repeats, view state, navigation
 │   └── themeStore.ts     # Theme, accent colour, CSS variable application
 ├── types/
 │   └── index.ts
 └── lib/
+    ├── actions.ts        # Quick add, plan my day, clear, rollover, undo
     ├── calendarEvents.ts # Event → local day slices, month bounds
     ├── db.ts             # Tauri SQLite helpers
+    ├── eisenhower.ts     # Quadrant suggestions and matrix scopes
+    ├── parseTask.ts      # Natural-language task parsing (EN + TR)
+    ├── planDay.ts        # Plan my day placement
+    ├── recurrence.ts     # Next occurrence of a repeating task
     └── time.ts           # Timebox grid constants, HH:MM helpers, column layout
 
 src-tauri/src/
@@ -190,6 +236,7 @@ src-tauri/src/
 ├── ical.rs               # iCalendar parsing + recurrence expansion
 ├── google.rs             # Google OAuth (loopback + PKCE) and Calendar API
 ├── secrets.rs            # Credential store (app data dir, 0600)
+├── desktop.rs            # Menu bar item
 └── events.rs             # Shared event type
 ```
 
